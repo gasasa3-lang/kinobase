@@ -15,7 +15,6 @@
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
     ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: var(--bg2); } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-    /* LOGIN */
     #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: radial-gradient(ellipse at 50% 0%, rgba(212,168,67,0.07) 0%, transparent 55%), var(--bg); }
     .login-box { width: 380px; padding: 48px 40px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); }
     .login-logo { text-align: center; margin-bottom: 32px; }
@@ -23,32 +22,25 @@
     .login-logo h1 { font-size: 22px; font-weight: 700; letter-spacing: 2px; color: var(--accent); }
     .login-logo p { font-size: 13px; color: var(--text2); margin-top: 4px; }
 
-    /* FORMS */
     .form-group { margin-bottom: 16px; }
     .form-group label { display: block; font-size: 11px; color: var(--text2); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; }
-    .form-group input, .form-group select, .form-group textarea {
-      width: 100%; padding: 10px 14px; background: var(--bg3); border: 1px solid var(--border);
-      border-radius: var(--r); color: var(--text); font-size: 14px; outline: none; transition: border-color 0.2s;
-    }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 14px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r); color: var(--text); font-size: 14px; outline: none; transition: border-color 0.2s; }
     .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
     .form-group select option { background: var(--bg3); }
     .form-group textarea { resize: vertical; min-height: 80px; font-family: inherit; line-height: 1.5; }
 
-    /* BUTTONS */
     .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: var(--r); font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; text-decoration: none; white-space: nowrap; }
     .btn-primary { background: var(--accent); color: #0d0d10; } .btn-primary:hover { background: #e0b84e; }
     .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); } .btn-ghost:hover { background: var(--bg3); color: var(--text); }
     .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); } .btn-danger:hover { background: rgba(224,84,84,0.1); }
     .btn-sm { padding: 6px 12px; font-size: 12px; } .btn-block { width: 100%; justify-content: center; }
 
-    /* LOADING */
     #loading-screen { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 999; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
     #loading-screen.visible { display: flex; }
     .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .loading-text { font-size: 14px; color: var(--text2); }
 
-    /* UPLOAD OVERLAY */
     #upload-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 900; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
     #upload-overlay.visible { display: flex; }
     .upload-progress-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); padding: 32px 40px; text-align: center; min-width: 320px; }
@@ -58,10 +50,8 @@
     .progress-bar { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s; }
     #upload-progress-text { font-size: 12px; color: var(--text2); margin-top: 8px; }
 
-    /* APP */
     #app { display: none; } #app.visible { display: flex; min-height: 100vh; }
 
-    /* SIDEBAR */
     .sidebar { width: 220px; min-height: 100vh; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
     .sidebar-header { padding: 20px 20px 16px; border-bottom: 1px solid var(--border); }
     .sidebar-logo { font-size: 15px; font-weight: 700; color: var(--accent); letter-spacing: 0.5px; }
@@ -74,16 +64,13 @@
     .nav-badge { margin-left: auto; background: var(--bg4); color: var(--text3); font-size: 11px; padding: 2px 7px; border-radius: 10px; min-width: 22px; text-align: center; }
     .nav-item.active .nav-badge { background: var(--accent-dim); color: var(--accent); }
     .sidebar-footer { padding: 10px 0; border-top: 1px solid var(--border); }
-
-    /* SYNC STATUS */
     .sync-bar { padding: 8px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
     .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
     .sync-dot.syncing { background: var(--accent); animation: pulse 1s infinite; }
     .sync-dot.error { background: var(--danger); }
-    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
     .sync-text { font-size: 11px; color: var(--text2); }
 
-    /* MAIN */
     .main-content { margin-left: 220px; flex: 1; padding-bottom: 60px; }
     .page-header { padding: 22px 32px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--bg2); position: sticky; top: 0; z-index: 50; }
     .page-header h2 { font-size: 20px; font-weight: 600; }
@@ -93,7 +80,6 @@
     .search-input:focus { border-color: var(--accent); }
     .filter-select { padding: 9px 14px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r); color: var(--text); font-size: 14px; outline: none; }
 
-    /* CARDS */
     .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
     .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); overflow: hidden; cursor: pointer; transition: all 0.2s; }
     .card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
@@ -107,12 +93,10 @@
     .card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
     .tag { font-size: 11px; padding: 3px 8px; border-radius: 4px; background: var(--bg4); color: var(--text2); }
 
-    /* EMPTY */
     .empty-state { text-align: center; padding: 60px 20px; color: var(--text2); }
     .empty-state .empty-icon { font-size: 48px; margin-bottom: 14px; }
     .empty-state h3 { font-size: 17px; margin-bottom: 6px; color: var(--text); }
 
-    /* TABLE */
     .table-wrap { overflow-x: auto; border-radius: var(--r); border: 1px solid var(--border); }
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
     thead th { padding: 10px 16px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text2); border-bottom: 1px solid var(--border); background: var(--bg2); font-weight: 600; }
@@ -128,7 +112,6 @@
     .status-post { background: rgba(180,100,220,0.15); color: #b464dc; }
     .status-done { background: rgba(88,88,105,0.3); color: var(--text2); }
 
-    /* MODAL */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.78); z-index: 200; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 40px 20px; }
     .modal-overlay.open { display: flex; }
     .modal { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); width: 100%; max-width: 600px; position: relative; margin: auto; }
@@ -138,7 +121,6 @@
     .modal-body { padding: 24px; } .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
-    /* UPLOAD */
     .upload-zone { border: 2px dashed var(--border); border-radius: var(--r); padding: 22px; text-align: center; cursor: pointer; transition: all 0.2s; color: var(--text2); }
     .upload-zone:hover, .upload-zone.drag-over { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
     .upload-zone .upload-icon { font-size: 26px; margin-bottom: 6px; }
@@ -149,7 +131,6 @@
     .remove-media { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.75); border: none; cursor: pointer; color: white; width: 20px; height: 20px; border-radius: 50%; font-size: 12px; display: flex; align-items: center; justify-content: center; }
     .media-type { position: absolute; bottom: 4px; left: 4px; background: rgba(0,0,0,0.7); font-size: 9px; padding: 2px 5px; border-radius: 3px; color: white; }
 
-    /* DETAIL */
     .detail-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 300; overflow-y: auto; padding: 40px 20px; }
     .detail-overlay.open { display: block; }
     .detail-panel { max-width: 800px; margin: 0 auto; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); }
@@ -162,7 +143,6 @@
     .detail-media-item { border-radius: var(--r); overflow: hidden; cursor: pointer; background: var(--bg3); aspect-ratio: 16/10; }
     .detail-media-item img, .detail-media-item video { width: 100%; height: 100%; object-fit: cover; }
 
-    /* STATS */
     .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
     .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); padding: 20px 24px; cursor: pointer; transition: all 0.15s; }
     .stat-card:hover { border-color: var(--accent); }
@@ -170,21 +150,12 @@
     .stat-card .stat-num { font-size: 30px; font-weight: 700; color: var(--accent); }
     .stat-card .stat-label { font-size: 13px; color: var(--text2); margin-top: 3px; }
 
-    /* SETTINGS */
     .settings-section { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); padding: 24px; margin-bottom: 18px; }
     .settings-section h3 { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
     .info-box { background: var(--accent-dim); border: 1px solid rgba(212,168,67,0.3); border-radius: var(--r); padding: 14px 16px; font-size: 13px; line-height: 1.7; color: var(--text2); margin-bottom: 16px; }
     .info-box strong { color: var(--accent); }
     .info-box ol { padding-left: 18px; margin-top: 6px; }
-    .token-status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; margin-top: 10px; }
-    .token-status.ok { color: var(--success); }
-    .token-status.err { color: var(--danger); }
 
-    /* NO TOKEN BANNER */
-    #no-token-banner { display: none; background: rgba(212,168,67,0.1); border: 1px solid rgba(212,168,67,0.3); border-radius: var(--r); padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: var(--accent); }
-    #no-token-banner a { color: var(--accent); cursor: pointer; text-decoration: underline; }
-
-    /* TOAST */
     #toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
     .toast-item { padding: 12px 18px; border-radius: var(--r); font-size: 14px; animation: slideIn 0.2s ease; max-width: 340px; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
     .toast-success { background: var(--success); color: white; }
@@ -192,7 +163,6 @@
     .toast-info { background: var(--info); color: white; }
     @keyframes slideIn { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-    /* CONFIRM */
     #confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 500; align-items: center; justify-content: center; }
     #confirm-overlay.open { display: flex; }
     .confirm-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); padding: 28px 32px; max-width: 380px; width: 90%; text-align: center; }
@@ -200,7 +170,7 @@
     .confirm-box p { color: var(--text2); font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
     .confirm-actions { display: flex; gap: 10px; justify-content: center; }
 
-    @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(2,1fr); } }
     @media (max-width: 700px) {
       .sidebar { width: 56px; }
       .sidebar .nav-item span:not(.nav-icon), .sidebar .sidebar-logo, .sidebar .sidebar-user, .sidebar .nav-badge, .sync-text { display: none; }
@@ -211,7 +181,6 @@
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">
@@ -232,27 +201,24 @@
     </div>
     <div id="login-error" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none"></div>
     <button class="btn btn-primary btn-block" onclick="doLogin()">Войти</button>
-    <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:18px">Первый вход: пароль <strong style="color:var(--text2)">admin123</strong> / <strong style="color:var(--text2)">director123</strong></p>
+    <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:18px">Первый вход: <strong style="color:var(--text2)">admin123</strong> / <strong style="color:var(--text2)">director123</strong></p>
   </div>
 </div>
 
-<!-- LOADING -->
 <div id="loading-screen">
   <div class="spinner"></div>
-  <div class="loading-text" id="loading-text">Подключение к Яндекс Диску...</div>
+  <div class="loading-text" id="loading-text">Загрузка...</div>
 </div>
 
-<!-- UPLOAD PROGRESS -->
 <div id="upload-overlay">
   <div class="upload-progress-box">
-    <h3>Загрузка на Яндекс Диск</h3>
-    <p id="upload-progress-label">Загружаем файлы...</p>
+    <h3>Сохранение файлов</h3>
+    <p id="upload-progress-label">Обработка...</p>
     <div class="progress-bar-wrap"><div class="progress-bar" id="upload-progress-bar" style="width:0%"></div></div>
     <div id="upload-progress-text">0 / 0</div>
   </div>
 </div>
 
-<!-- APP -->
 <div id="app">
   <nav class="sidebar">
     <div class="sidebar-header">
@@ -267,19 +233,17 @@
       <div class="nav-item" onclick="showPage('projects')" id="nav-projects"><span class="nav-icon">🎥</span><span>Проекты</span><span class="nav-badge" id="badge-projects">0</span></div>
     </div>
     <div class="sidebar-footer">
-      <div class="sync-bar"><div class="sync-dot" id="sync-dot"></div><div class="sync-text" id="sync-text">Синхронизировано</div></div>
+      <div class="sync-bar"><div class="sync-dot" id="sync-dot"></div><div class="sync-text" id="sync-text">Локально</div></div>
       <div class="nav-item" onclick="showPage('settings')" id="nav-settings"><span class="nav-icon">⚙️</span><span>Настройки</span></div>
       <div class="nav-item" onclick="doLogout()"><span class="nav-icon">🚪</span><span>Выйти</span></div>
     </div>
   </nav>
 
   <main class="main-content">
-
     <!-- DASHBOARD -->
     <div id="page-dashboard" class="page">
-      <div class="page-header"><h2>Дашборд</h2><button class="btn btn-ghost btn-sm" onclick="syncFromYD()">🔄 Обновить</button></div>
+      <div class="page-header"><h2>Дашборд</h2><button class="btn btn-ghost btn-sm" onclick="ydSync()">🔄 Синхронизировать с ЯД</button></div>
       <div class="page-body">
-        <div id="no-token-banner">⚠️ Яндекс Диск не подключён — данные не сохраняются в облако. <a onclick="showPage('settings')">Настроить →</a></div>
         <div class="stats-grid">
           <div class="stat-card" onclick="showPage('people')"><div class="stat-icon">👥</div><div class="stat-num" id="stat-people">0</div><div class="stat-label">Людей в базе</div></div>
           <div class="stat-card" onclick="showPage('locations')"><div class="stat-icon">📍</div><div class="stat-num" id="stat-locations">0</div><div class="stat-label">Локаций</div></div>
@@ -365,29 +329,25 @@
     <div id="page-settings" class="page" style="display:none">
       <div class="page-header"><h2>Настройки</h2></div>
       <div class="page-body">
-
         <div class="settings-section">
-          <h3>☁️ Яндекс Диск</h3>
+          <h3>☁️ Яндекс Диск (необязательно)</h3>
           <div class="info-box">
-            <strong>Как получить токен (один раз):</strong>
+            Без токена все данные хранятся <strong>локально в браузере</strong> — они не исчезают при перезагрузке.<br>
+            Токен нужен только для синхронизации между устройствами.<br><br>
+            <strong>Как получить токен:</strong>
             <ol>
-              <li>Откройте <strong><a href="https://yandex.ru/dev/disk/poligon/" target="_blank" style="color:var(--accent)">yandex.ru/dev/disk/poligon</a></strong></li>
-              <li>Нажмите <strong>«Получить OAuth-токен»</strong> и авторизуйтесь</li>
+              <li>Откройте <a href="https://yandex.ru/dev/disk/poligon/" target="_blank" style="color:var(--accent)">yandex.ru/dev/disk/poligon</a></li>
+              <li>Нажмите «Получить OAuth-токен» → авторизуйтесь</li>
               <li>Скопируйте токен и вставьте ниже</li>
             </ol>
-            Все данные будут храниться в папке <strong>КиноБаза/</strong> на вашем Яндекс Диске.
           </div>
-          <div class="form-group">
-            <label>OAuth токен</label>
-            <input type="password" id="yd-token-input" placeholder="y0_A...">
-          </div>
+          <div class="form-group"><label>OAuth токен Яндекс Диска</label><input type="password" id="yd-token-input" placeholder="y0_A..."></div>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-            <button class="btn btn-primary" onclick="saveYDToken()">Сохранить и подключить</button>
-            <button class="btn btn-ghost" onclick="testYDToken()">Проверить соединение</button>
+            <button class="btn btn-primary" onclick="saveYDToken()">Сохранить токен</button>
+            <button class="btn btn-ghost" onclick="ydSync()">🔄 Синхронизировать сейчас</button>
             <div id="token-status" style="font-size:13px;color:var(--text2)"></div>
           </div>
         </div>
-
         <div class="settings-section">
           <h3>🔐 Пароли</h3>
           <div class="form-row">
@@ -396,21 +356,17 @@
           </div>
           <button class="btn btn-primary" onclick="savePasswords()">Сохранить пароли</button>
         </div>
-
         <div class="settings-section">
           <h3>📥 Резервная копия</h3>
-          <p style="color:var(--text2);font-size:14px;margin-bottom:16px">Скачать все текстовые записи в JSON (без медиафайлов — они уже на Яндекс Диске).</p>
+          <p style="color:var(--text2);font-size:14px;margin-bottom:16px">Скачать все текстовые записи в JSON.</p>
           <button class="btn btn-ghost" onclick="exportJSON()">Скачать JSON</button>
         </div>
-
       </div>
     </div>
-
   </main>
 </div>
 
 <!-- MODALS -->
-<!-- Person -->
 <div class="modal-overlay" id="modal-person">
   <div class="modal">
     <div class="modal-header"><h3 id="modal-person-title">Добавить человека</h3><button class="modal-close" onclick="closeModal('modal-person')">×</button></div>
@@ -418,7 +374,7 @@
       <input type="hidden" id="person-id">
       <div class="form-row">
         <div class="form-group"><label>Имя / Фамилия *</label><input type="text" id="person-name" placeholder="Имя Фамилия"></div>
-        <div class="form-group"><label>Профессия *</label>
+        <div class="form-group"><label>Профессия</label>
           <select id="person-profession">
             <option>Актёр / Актриса</option><option>Режиссёр</option><option>Оператор</option>
             <option>Сценарист</option><option>Продюсер</option><option>Монтажёр</option>
@@ -448,7 +404,6 @@
   </div>
 </div>
 
-<!-- Location -->
 <div class="modal-overlay" id="modal-location">
   <div class="modal">
     <div class="modal-header"><h3 id="modal-location-title">Добавить локацию</h3><button class="modal-close" onclick="closeModal('modal-location')">×</button></div>
@@ -477,7 +432,6 @@
   </div>
 </div>
 
-<!-- Script -->
 <div class="modal-overlay" id="modal-script">
   <div class="modal">
     <div class="modal-header"><h3 id="modal-script-title">Добавить сценарий</h3><button class="modal-close" onclick="closeModal('modal-script')">×</button></div>
@@ -493,7 +447,7 @@
       </div>
       <div class="form-group"><label>Проект</label><input type="text" id="script-project" placeholder="Название проекта"></div>
       <div class="form-group"><label>Содержание / Синопсис</label><textarea id="script-content" placeholder="Краткое содержание или полный текст..." style="min-height:120px"></textarea></div>
-      <div class="form-group"><label>Заметки</label><textarea id="script-notes" placeholder="Дополнительные заметки..."></textarea></div>
+      <div class="form-group"><label>Заметки</label><textarea id="script-notes"></textarea></div>
       <div class="form-group">
         <label>Прикрепить файлы (PDF, Word, TXT)</label>
         <div class="upload-zone" onclick="document.getElementById('script-files').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event,'script')">
@@ -507,7 +461,6 @@
   </div>
 </div>
 
-<!-- Project -->
 <div class="modal-overlay" id="modal-project">
   <div class="modal" style="max-width:680px">
     <div class="modal-header"><h3 id="modal-project-title">Добавить проект</h3><button class="modal-close" onclick="closeModal('modal-project')">×</button></div>
@@ -529,8 +482,8 @@
         <div class="form-group"><label>Дата начала</label><input type="date" id="project-start"></div>
         <div class="form-group"><label>Дата окончания</label><input type="date" id="project-end"></div>
       </div>
-      <div class="form-group"><label>Описание / Бриф</label><textarea id="project-desc" placeholder="Описание проекта, идея, задача..."></textarea></div>
-      <div class="form-group"><label>Заметки</label><textarea id="project-notes" placeholder="Доп. информация..."></textarea></div>
+      <div class="form-group"><label>Описание / Бриф</label><textarea id="project-desc" placeholder="Описание проекта..."></textarea></div>
+      <div class="form-group"><label>Заметки</label><textarea id="project-notes"></textarea></div>
       <div class="form-group">
         <label>Медиа</label>
         <div class="upload-zone" onclick="document.getElementById('project-files').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event,'project')">
@@ -544,7 +497,6 @@
   </div>
 </div>
 
-<!-- DETAIL VIEW -->
 <div class="detail-overlay" id="detail-overlay">
   <div class="detail-panel">
     <div class="detail-header">
@@ -562,7 +514,6 @@
   </div>
 </div>
 
-<!-- CONFIRM -->
 <div id="confirm-overlay">
   <div class="confirm-box">
     <h3 id="confirm-title">Подтвердите</h3>
@@ -573,143 +524,190 @@
     </div>
   </div>
 </div>
-
 <div id="toast"></div>
 
 <script>
 // =====================================================================
-// ЯНДЕКС ДИСК API
+// ХРАНИЛИЩЕ: localStorage (текст) + IndexedDB (файлы)
+// =====================================================================
+const LS_KEY = 'kb_data_v3';
+
+function saveLocal() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({
+      people: DB.people, locations: DB.locations,
+      scripts: DB.scripts, projects: DB.projects
+    }));
+  } catch(e) { console.warn('localStorage save failed', e); }
+}
+
+function loadLocal() {
+  try {
+    const s = localStorage.getItem(LS_KEY);
+    if (s) {
+      const d = JSON.parse(s);
+      DB.people    = d.people    || [];
+      DB.locations = d.locations || [];
+      DB.scripts   = d.scripts   || [];
+      DB.projects  = d.projects  || [];
+    }
+  } catch(e) { console.warn('localStorage load failed', e); }
+}
+
+// IndexedDB — только для хранения файловых blob
+let idb;
+function initIDB() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('kb_media_v1', 1);
+    r.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('blobs')) db.createObjectStore('blobs', { keyPath: 'id' });
+    };
+    r.onsuccess = e => { idb = e.target.result; res(); };
+    r.onerror = () => { idb = null; res(); }; // не критично
+  });
+}
+
+function idbPut(id, blob, name, type) {
+  if (!idb) return Promise.resolve();
+  return new Promise((res, rej) => {
+    const tx = idb.transaction('blobs', 'readwrite');
+    tx.objectStore('blobs').put({ id, blob, name, type });
+    tx.oncomplete = res; tx.onerror = rej;
+  });
+}
+
+function idbGet(id) {
+  if (!idb) return Promise.resolve(null);
+  return new Promise((res, rej) => {
+    const r = idb.transaction('blobs','readonly').objectStore('blobs').get(id);
+    r.onsuccess = () => res(r.result || null);
+    r.onerror = () => res(null);
+  });
+}
+
+function idbDel(id) {
+  if (!idb) return Promise.resolve();
+  return new Promise((res) => {
+    try { idb.transaction('blobs','readwrite').objectStore('blobs').delete(id); } catch{}
+    res();
+  });
+}
+
+// =====================================================================
+// ЯНДЕКС ДИСК (опциональная синхронизация)
 // =====================================================================
 const YD = {
   BASE: 'https://cloud-api.yandex.net/v1/disk',
   ROOT: 'disk:/КиноБаза',
-  _urlCache: new Map(), // "id.ext" → url (cached download links)
-
   get token() { return localStorage.getItem('kb_yd_token') || ''; },
   set token(v) { if (v) localStorage.setItem('kb_yd_token', v); else localStorage.removeItem('kb_yd_token'); },
-
   h() { return { 'Authorization': 'OAuth ' + this.token }; },
-
-  async checkToken() {
-    if (!this.token) return false;
-    try {
-      const r = await fetch(this.BASE + '/', { headers: this.h() });
-      return r.ok;
-    } catch { return false; }
-  },
 
   async mkdir(path) {
     try {
-      const check = await fetch(`${this.BASE}/resources?path=${encodeURIComponent(path)}`, { headers: this.h() });
-      if (check.status === 404) {
-        await fetch(`${this.BASE}/resources?path=${encodeURIComponent(path)}`, { method: 'PUT', headers: this.h() });
-      }
-    } catch(e) { /* ignore */ }
+      const c = await fetch(`${this.BASE}/resources?path=${encodeURIComponent(path)}`, { headers: this.h() });
+      if (c.status === 404) await fetch(`${this.BASE}/resources?path=${encodeURIComponent(path)}`, { method:'PUT', headers: this.h() });
+    } catch {}
   },
 
-  async init() {
-    await this.mkdir(this.ROOT);
-    await this.mkdir(this.ROOT + '/media');
+  async uploadJSON() {
+    const blob = new Blob([JSON.stringify({ people:DB.people,locations:DB.locations,scripts:DB.scripts,projects:DB.projects })], { type:'application/json' });
+    const r1 = await fetch(`${this.BASE}/resources/upload?path=${encodeURIComponent(this.ROOT+'/db.json')}&overwrite=true`, { headers: this.h() });
+    if (!r1.ok) throw new Error('YD upload URL error');
+    const { href } = await r1.json();
+    await fetch(href, { method:'PUT', body:blob });
   },
 
-  async loadDB() {
-    try {
-      const r1 = await fetch(`${this.BASE}/resources/download?path=${encodeURIComponent(this.ROOT + '/db.json')}`, { headers: this.h() });
-      if (r1.status === 404) return null;
-      if (!r1.ok) throw new Error('Ошибка API: ' + r1.status);
-      const { href } = await r1.json();
-      const r2 = await fetch(href);
-      if (!r2.ok) throw new Error('Ошибка загрузки файла');
-      return await r2.json();
-    } catch(e) {
-      if (e.message?.includes('404')) return null;
-      throw e;
-    }
-  },
-
-  async saveDB() {
-    if (!this.token) return;
-    setSyncStatus('syncing', 'Сохранение...');
-    try {
-      const json = JSON.stringify({ version: 2, people: DB.people, locations: DB.locations, scripts: DB.scripts, projects: DB.projects });
-      const blob = new Blob([json], { type: 'application/json' });
-      const r1 = await fetch(`${this.BASE}/resources/upload?path=${encodeURIComponent(this.ROOT + '/db.json')}&overwrite=true`, { headers: this.h() });
-      if (!r1.ok) throw new Error('Upload URL error');
-      const { href } = await r1.json();
-      const r2 = await fetch(href, { method: 'PUT', body: blob });
-      if (!r2.ok) throw new Error('Upload error');
-      setSyncStatus('ok', 'Сохранено ' + new Date().toLocaleTimeString('ru'));
-    } catch(e) {
-      setSyncStatus('error', 'Ошибка сохранения');
-      throw e;
-    }
+  async downloadJSON() {
+    const r1 = await fetch(`${this.BASE}/resources/download?path=${encodeURIComponent(this.ROOT+'/db.json')}`, { headers: this.h() });
+    if (r1.status === 404) return null;
+    if (!r1.ok) throw new Error('YD download error');
+    const { href } = await r1.json();
+    const r2 = await fetch(href);
+    return await r2.json();
   },
 
   async uploadFile(id, ext, file) {
     const path = `${this.ROOT}/media/${id}.${ext}`;
     const r1 = await fetch(`${this.BASE}/resources/upload?path=${encodeURIComponent(path)}&overwrite=true`, { headers: this.h() });
-    if (!r1.ok) throw new Error('Ошибка получения URL для загрузки');
+    if (!r1.ok) return;
     const { href } = await r1.json();
-    const r2 = await fetch(href, { method: 'PUT', body: file });
-    if (!r2.ok) throw new Error('Ошибка загрузки файла');
+    await fetch(href, { method:'PUT', body:file });
   },
 
   async getFileUrl(id, ext) {
-    const key = `${id}.${ext}`;
-    if (this._urlCache.has(key)) return this._urlCache.get(key);
     try {
-      const path = `${this.ROOT}/media/${key}`;
-      const r = await fetch(`${this.BASE}/resources/download?path=${encodeURIComponent(path)}`, { headers: this.h() });
+      const r = await fetch(`${this.BASE}/resources/download?path=${encodeURIComponent(this.ROOT+'/media/'+id+'.'+ext)}`, { headers: this.h() });
       if (!r.ok) return null;
       const { href } = await r.json();
-      this._urlCache.set(key, href);
-      // Cache expires in 25 min
-      setTimeout(() => this._urlCache.delete(key), 25 * 60 * 1000);
       return href;
     } catch { return null; }
   },
 
   async deleteFile(id, ext) {
-    try {
-      const path = `${this.ROOT}/media/${id}.${ext}`;
-      await fetch(`${this.BASE}/resources?path=${encodeURIComponent(path)}&permanently=true`, { method: 'DELETE', headers: this.h() });
-      this._urlCache.delete(`${id}.${ext}`);
-    } catch { /* ignore */ }
+    try { await fetch(`${this.BASE}/resources?path=${encodeURIComponent(this.ROOT+'/media/'+id+'.'+ext)}&permanently=true`, { method:'DELETE', headers: this.h() }); } catch {}
   }
 };
+
+async function ydSync() {
+  if (!YD.token) { toast('Токен Яндекс Диска не задан — настройте в Настройках', 'info'); return; }
+  setSyncStatus('syncing', 'Синхронизация...');
+  try {
+    await YD.mkdir(YD.ROOT);
+    await YD.mkdir(YD.ROOT + '/media');
+    const remote = await YD.downloadJSON();
+    if (remote) {
+      // Merge: remote wins for records, but keep local blobs
+      DB.people    = remote.people    || DB.people;
+      DB.locations = remote.locations || DB.locations;
+      DB.scripts   = remote.scripts   || DB.scripts;
+      DB.projects  = remote.projects  || DB.projects;
+      saveLocal();
+    }
+    await YD.uploadJSON();
+    setSyncStatus('ok', 'Синхронизировано ' + new Date().toLocaleTimeString('ru'));
+    toast('Синхронизировано с Яндекс Диском', 'success');
+    updateBadges();
+    loadCurrentPage();
+  } catch(e) {
+    setSyncStatus('error', 'Ошибка синхронизации');
+    toast('Ошибка: ' + e.message, 'error');
+  }
+}
 
 // =====================================================================
 // APP STATE
 // =====================================================================
 let DB = { people: [], locations: [], scripts: [], projects: [] };
-const pending = { person: [], location: [], script: [], project: [] };
-const existingMedia = { person: [], location: [], script: [], project: [] };
+const pending = { person:[], location:[], script:[], project:[] };
+const existingMedia = { person:[], location:[], script:[], project:[] };
 const SCLS = { 'Разработка':'status-dev','Препродакшн':'status-pre','Продакшн':'status-prod','Постпродакшн':'status-post','Завершён':'status-done' };
+let currentPage = 'dashboard';
 
-function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
-function ext(file) { return file.name.split('.').pop().toLowerCase() || 'bin'; }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function getExt(file) { return (file.name.split('.').pop() || 'bin').toLowerCase(); }
 
-// =====================================================================
-// SYNC STATUS
-// =====================================================================
-function setSyncStatus(state, text) {
-  const dot = document.getElementById('sync-dot');
-  const txt = document.getElementById('sync-text');
-  dot.className = 'sync-dot' + (state !== 'ok' ? ' ' + state : '');
-  txt.textContent = text;
+async function persistDB() {
+  saveLocal();
+  if (YD.token) {
+    setSyncStatus('syncing', 'Сохранение...');
+    try { await YD.uploadJSON(); setSyncStatus('ok', 'Сохранено ' + new Date().toLocaleTimeString('ru')); }
+    catch { setSyncStatus('error', 'Ошибка YD'); }
+  }
 }
 
 // =====================================================================
 // AUTH
 // =====================================================================
-const PW_KEY = 'kb_pw2';
-function getPW() { const s = localStorage.getItem(PW_KEY); return s ? JSON.parse(s) : { admin: 'admin123', director: 'director123' }; }
+const PW_KEY = 'kb_pw3';
+function getPW() { const s = localStorage.getItem(PW_KEY); return s ? JSON.parse(s) : { admin:'admin123', director:'director123' }; }
 
 function doLogin() {
   const user = document.getElementById('login-user').value;
   const pass = document.getElementById('login-pass').value;
-  const err = document.getElementById('login-error');
-  if (getPW()[user] !== pass) { err.textContent = 'Неверный пароль'; err.style.display = 'block'; return; }
+  const err  = document.getElementById('login-error');
+  if (getPW()[user] !== pass) { err.textContent='Неверный пароль'; err.style.display='block'; return; }
   err.style.display = 'none';
   localStorage.setItem('kb_sess', user);
   startApp(user);
@@ -718,21 +716,20 @@ function doLogin() {
 async function startApp(user) {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('sidebar-user-name').textContent = user === 'admin' ? 'Александр' : 'Режиссёр';
-
-  if (YD.token) {
-    showLoading('Подключение к Яндекс Диску...');
-    await syncFromYD();
-    hideLoading();
-  }
-
+  showLoading('Загрузка данных...');
+  await initIDB();
+  loadLocal();
+  hideLoading();
   document.getElementById('app').classList.add('visible');
-  updateBannerAndBadges();
+  updateBadges();
   showPage('dashboard');
+  // Фоновая синхронизация с ЯД если токен есть
+  if (YD.token) setTimeout(ydSync, 1000);
 }
 
 function doLogout() {
   localStorage.removeItem('kb_sess');
-  DB = { people: [], locations: [], scripts: [], projects: [] };
+  DB = { people:[], locations:[], scripts:[], projects:[] };
   document.getElementById('app').classList.remove('visible');
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('login-pass').value = '';
@@ -748,170 +745,58 @@ function savePasswords() {
   toast('Пароли сохранены', 'success');
 }
 
-document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-window.addEventListener('load', () => { const s = localStorage.getItem('kb_sess'); if (s) { document.getElementById('login-user').value = s; startApp(s); } });
-
-// =====================================================================
-// YANDEX DISK SETTINGS
-// =====================================================================
 function saveYDToken() {
   const t = document.getElementById('yd-token-input').value.trim();
   if (!t) { toast('Введите токен', 'error'); return; }
   YD.token = t;
   document.getElementById('yd-token-input').value = '';
-  testYDToken();
+  document.getElementById('token-status').textContent = '✅ Токен сохранён';
+  document.getElementById('token-status').style.color = 'var(--success)';
+  toast('Токен сохранён! Синхронизируем...', 'success');
+  ydSync();
 }
 
-async function testYDToken() {
-  const el = document.getElementById('token-status');
-  el.textContent = '⏳ Проверяем...'; el.style.color = 'var(--text2)';
-  const ok = await YD.checkToken();
-  if (ok) {
-    el.textContent = '✅ Подключено'; el.style.color = 'var(--success)';
-    toast('Яндекс Диск подключён!', 'success');
-    showLoading('Загружаем данные...');
-    await syncFromYD();
-    hideLoading();
-    updateBannerAndBadges();
-    showPage('dashboard');
-  } else {
-    el.textContent = '❌ Ошибка. Проверьте токен.'; el.style.color = 'var(--danger)';
-    toast('Не удалось подключиться', 'error');
-  }
-}
-
-async function syncFromYD() {
-  if (!YD.token) return;
-  setSyncStatus('syncing', 'Синхронизация...');
-  try {
-    await YD.init();
-    const data = await YD.loadDB();
-    if (data) {
-      DB.people = data.people || [];
-      DB.locations = data.locations || [];
-      DB.scripts = data.scripts || [];
-      DB.projects = data.projects || [];
-    }
-    setSyncStatus('ok', 'Синхронизировано');
-    updateBannerAndBadges();
-  } catch(e) {
-    setSyncStatus('error', 'Ошибка синхронизации');
-    toast('Ошибка синхронизации: ' + e.message, 'error');
-  }
-}
+document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+window.addEventListener('load', () => {
+  const s = localStorage.getItem('kb_sess');
+  if (s) { document.getElementById('login-user').value = s; startApp(s); }
+  if (YD.token) document.getElementById('yd-token-input').placeholder = 'Токен уже сохранён (введите новый для замены)';
+});
 
 // =====================================================================
-// LOADING
+// UI HELPERS
 // =====================================================================
-function showLoading(text) {
-  document.getElementById('loading-text').textContent = text || 'Загрузка...';
-  document.getElementById('loading-screen').classList.add('visible');
-}
+function showLoading(t) { document.getElementById('loading-text').textContent = t||'...'; document.getElementById('loading-screen').classList.add('visible'); }
 function hideLoading() { document.getElementById('loading-screen').classList.remove('visible'); }
 
-function showUploadProgress(label, current, total) {
+function showUploadProgress(label, cur, total) {
   document.getElementById('upload-progress-label').textContent = label;
-  document.getElementById('upload-progress-bar').style.width = (total > 0 ? (current/total*100) : 0) + '%';
-  document.getElementById('upload-progress-text').textContent = `${current} / ${total}`;
+  document.getElementById('upload-progress-bar').style.width = (total>0?Math.round(cur/total*100):0)+'%';
+  document.getElementById('upload-progress-text').textContent = cur+' / '+total;
   document.getElementById('upload-overlay').classList.add('visible');
 }
 function hideUploadProgress() { document.getElementById('upload-overlay').classList.remove('visible'); }
 
-// =====================================================================
-// PAGES
-// =====================================================================
-function showPage(name) {
-  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + name).style.display = 'block';
-  const nav = document.getElementById('nav-' + name);
-  if (nav) nav.classList.add('active');
-  ({ dashboard: loadDashboard, people: loadPeople, locations: loadLocations, scripts: loadScripts, projects: loadProjects })[name]?.();
+function setSyncStatus(state, text) {
+  const dot = document.getElementById('sync-dot');
+  const txt = document.getElementById('sync-text');
+  dot.className = 'sync-dot' + (state!=='ok'?' '+state:'');
+  txt.textContent = text;
 }
 
-function updateBannerAndBadges() {
-  document.getElementById('no-token-banner').style.display = YD.token ? 'none' : 'block';
+function updateBadges() {
   ['people','locations','scripts','projects'].forEach(s => {
-    const b = document.getElementById('badge-' + s);
+    const b = document.getElementById('badge-'+s);
     if (b) b.textContent = DB[s].length;
+    const stat = document.getElementById('stat-'+s);
+    if (stat) stat.textContent = DB[s].length;
   });
-  document.getElementById('stat-people').textContent = DB.people.length;
-  document.getElementById('stat-locations').textContent = DB.locations.length;
-  document.getElementById('stat-scripts').textContent = DB.scripts.length;
-  document.getElementById('stat-projects').textContent = DB.projects.length;
 }
 
-// =====================================================================
-// MEDIA HANDLING (pending files in memory before upload)
-// =====================================================================
-async function handleFiles(files, ctx) {
-  for (const f of files) {
-    const id = uid();
-    const mediaRef = { id, ext: ext(f), name: f.name, type: f.type };
-    const localUrl = URL.createObjectURL(f);
-    pending[ctx].push({ ...mediaRef, file: f, localUrl });
-    renderThumb(id, localUrl, f.type, ctx, false, mediaRef.ext);
-  }
-}
-async function handleDrop(e, ctx) {
-  e.preventDefault(); e.currentTarget.classList.remove('drag-over');
-  await handleFiles(e.dataTransfer.files, ctx);
-}
-
-function renderThumb(id, url, type, ctx, isExisting, fileExt) {
-  const c = document.getElementById(ctx + '-media-previews');
-  const d = document.createElement('div');
-  d.className = 'media-thumb'; d.id = 'th-' + id;
-  const rmFn = isExisting ? `rmExisting('${id}','${ctx}')` : `rmPending('${id}','${ctx}')`;
-  if (type.startsWith('image/')) {
-    d.innerHTML = `<img src="${url}"><button class="remove-media" onclick="${rmFn}">×</button><span class="media-type">IMG</span>`;
-  } else if (type.startsWith('video/')) {
-    d.innerHTML = `<video src="${url}" muted></video><button class="remove-media" onclick="${rmFn}">×</button><span class="media-type">VID</span>`;
-  } else {
-    d.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:26px;flex-direction:column;gap:4px"><div>📄</div><div style="font-size:9px;color:var(--text2)">${(fileExt||'').toUpperCase()}</div></div><button class="remove-media" onclick="${rmFn}">×</button><span class="media-type">FILE</span>`;
-  }
-  c.appendChild(d);
-}
-
-function rmPending(id, ctx) { pending[ctx] = pending[ctx].filter(m => m.id !== id); document.getElementById('th-' + id)?.remove(); }
-function rmExisting(id, ctx) { existingMedia[ctx] = existingMedia[ctx].filter(x => x.id !== id); document.getElementById('th-' + id)?.remove(); }
-
-async function uploadPending(ctx) {
-  const files = pending[ctx];
-  if (!files.length || !YD.token) return [];
-  showUploadProgress('Загружаем медиафайлы...', 0, files.length);
-  const refs = [];
-  for (let i = 0; i < files.length; i++) {
-    const m = files[i];
-    showUploadProgress(`Загружаем: ${m.name}`, i, files.length);
-    await YD.uploadFile(m.id, m.ext, m.file);
-    refs.push({ id: m.id, ext: m.ext, name: m.name, type: m.type });
-  }
-  showUploadProgress('Готово', files.length, files.length);
-  await new Promise(r => setTimeout(r, 400));
-  hideUploadProgress();
-  return refs;
-}
-
-function clearCtx(ctx) {
-  document.getElementById(ctx + '-media-previews').innerHTML = '';
-  pending[ctx] = []; existingMedia[ctx] = [];
-}
-
-async function getMediaDisplayUrl(ref) {
-  if (!YD.token) return null;
-  if (ref.localUrl) return { url: ref.localUrl, type: ref.type, name: ref.name }; // pending (not uploaded yet)
-  const url = await YD.getFileUrl(ref.id, ref.ext);
-  return url ? { url, type: ref.type, name: ref.name } : null;
-}
-
-// =====================================================================
-// MODALS
-// =====================================================================
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 function closeDetail() { document.getElementById('detail-overlay').classList.remove('open'); }
-document.querySelectorAll('.modal-overlay').forEach(o => { o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }); });
+document.querySelectorAll('.modal-overlay').forEach(o => { o.addEventListener('click', e => { if (e.target===o) o.classList.remove('open'); }); });
 
 let confirmCb;
 function showConfirm(title, text) {
@@ -921,11 +806,101 @@ function showConfirm(title, text) {
   return new Promise(res => { confirmCb = v => { document.getElementById('confirm-overlay').classList.remove('open'); res(v); }; });
 }
 
-function toast(msg, type = 'info') {
+function toast(msg, type='info') {
   const c = document.getElementById('toast');
   const d = document.createElement('div');
-  d.className = `toast-item toast-${type}`; d.textContent = msg;
+  d.className = 'toast-item toast-'+type; d.textContent = msg;
   c.appendChild(d); setTimeout(() => d.remove(), 3500);
+}
+
+// =====================================================================
+// PAGES
+// =====================================================================
+function showPage(name) {
+  currentPage = name;
+  document.querySelectorAll('.page').forEach(p => p.style.display='none');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+name).style.display = 'block';
+  const nav = document.getElementById('nav-'+name);
+  if (nav) nav.classList.add('active');
+  ({ dashboard:loadDashboard, people:loadPeople, locations:loadLocations, scripts:loadScripts, projects:loadProjects })[name]?.();
+}
+
+function loadCurrentPage() {
+  ({ dashboard:loadDashboard, people:loadPeople, locations:loadLocations, scripts:loadScripts, projects:loadProjects })[currentPage]?.();
+}
+
+// =====================================================================
+// МЕДИАФАЙЛЫ
+// =====================================================================
+async function handleFiles(files, ctx) {
+  for (const f of files) {
+    const id = uid();
+    const ext = getExt(f);
+    // Сохраняем blob в IndexedDB сразу
+    await idbPut(id, f, f.name, f.type);
+    const ref = { id, ext, name: f.name, type: f.type };
+    pending[ctx].push(ref);
+    renderThumb(id, URL.createObjectURL(f), f.type, ctx, false, ext);
+  }
+}
+
+async function handleDrop(e, ctx) {
+  e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+  await handleFiles(e.dataTransfer.files, ctx);
+}
+
+function renderThumb(id, url, type, ctx, isExisting, fileExt) {
+  const c = document.getElementById(ctx+'-media-previews');
+  const d = document.createElement('div');
+  d.className = 'media-thumb'; d.id = 'th-'+id;
+  const rmFn = isExisting ? `rmExisting('${id}','${ctx}')` : `rmPending('${id}','${ctx}')`;
+  if (type.startsWith('image/')) {
+    d.innerHTML = `<img src="${url}"><button class="remove-media" onclick="${rmFn}">×</button><span class="media-type">IMG</span>`;
+  } else if (type.startsWith('video/')) {
+    d.innerHTML = `<video src="${url}" muted></video><button class="remove-media" onclick="${rmFn}">×</button><span class="media-type">VID</span>`;
+  } else {
+    d.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:24px;flex-direction:column;gap:3px"><div>📄</div><div style="font-size:9px;color:var(--text2)">${(fileExt||'').toUpperCase()}</div></div><button class="remove-media" onclick="${rmFn}">×</button><span class="media-type">FILE</span>`;
+  }
+  c.appendChild(d);
+}
+
+function rmPending(id, ctx) { pending[ctx]=pending[ctx].filter(m=>m.id!==id); idbDel(id); document.getElementById('th-'+id)?.remove(); }
+function rmExisting(id, ctx) { existingMedia[ctx]=existingMedia[ctx].filter(x=>x.id!==id); idbDel(id); document.getElementById('th-'+id)?.remove(); }
+
+async function commitMedia(ctx) {
+  // Файлы уже в IndexedDB, опционально заливаем на YD
+  const newRefs = [...pending[ctx]];
+  if (YD.token && newRefs.length) {
+    showUploadProgress('Загрузка на Яндекс Диск...', 0, newRefs.length);
+    for (let i=0; i<newRefs.length; i++) {
+      const ref = newRefs[i];
+      showUploadProgress('Загружаем: '+ref.name, i, newRefs.length);
+      const rec = await idbGet(ref.id);
+      if (rec) await YD.uploadFile(ref.id, ref.ext, rec.blob).catch(()=>{});
+    }
+    showUploadProgress('Готово', newRefs.length, newRefs.length);
+    await new Promise(r=>setTimeout(r,400));
+    hideUploadProgress();
+  }
+  return [...existingMedia[ctx], ...newRefs];
+}
+
+function clearCtx(ctx) {
+  document.getElementById(ctx+'-media-previews').innerHTML='';
+  pending[ctx]=[]; existingMedia[ctx]=[];
+}
+
+async function getMediaUrl(ref) {
+  // Сначала пробуем IndexedDB
+  const rec = await idbGet(ref.id);
+  if (rec && rec.blob) return { url: URL.createObjectURL(rec.blob), type: rec.type, name: rec.name };
+  // Потом YD
+  if (YD.token) {
+    const url = await YD.getFileUrl(ref.id, ref.ext);
+    if (url) return { url, type: ref.type, name: ref.name };
+  }
+  return null;
 }
 
 // =====================================================================
@@ -934,30 +909,25 @@ function toast(msg, type = 'info') {
 async function openAddPerson() {
   clearCtx('person');
   document.getElementById('modal-person-title').textContent = 'Добавить человека';
-  document.getElementById('person-id').value = '';
-  document.getElementById('person-name').value = '';
-  document.getElementById('person-phone').value = '';
-  document.getElementById('person-email').value = '';
-  document.getElementById('person-tags').value = '';
-  document.getElementById('person-notes').value = '';
+  ['person-id','person-name','person-phone','person-email','person-tags','person-notes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('person-profession').value = 'Актёр / Актриса';
   openModal('modal-person');
 }
 
 async function openEditPerson(id) {
-  const p = DB.people.find(x => x.id === id); if (!p) return;
+  const p = DB.people.find(x=>x.id===id); if (!p) return;
   clearCtx('person');
   document.getElementById('modal-person-title').textContent = 'Редактировать';
   document.getElementById('person-id').value = p.id;
   document.getElementById('person-name').value = p.name;
   document.getElementById('person-profession').value = p.profession;
-  document.getElementById('person-phone').value = p.phone || '';
-  document.getElementById('person-email').value = p.email || '';
+  document.getElementById('person-phone').value = p.phone||'';
+  document.getElementById('person-email').value = p.email||'';
   document.getElementById('person-tags').value = (p.tags||[]).join(', ');
-  document.getElementById('person-notes').value = p.notes || '';
+  document.getElementById('person-notes').value = p.notes||'';
   existingMedia.person = [...(p.media||[])];
   for (const ref of existingMedia.person) {
-    const m = await getMediaDisplayUrl(ref);
+    const m = await getMediaUrl(ref);
     if (m) renderThumb(ref.id, m.url, m.type, 'person', true, ref.ext);
   }
   closeDetail(); openModal('modal-person');
@@ -966,11 +936,9 @@ async function openEditPerson(id) {
 async function savePerson() {
   const name = document.getElementById('person-name').value.trim();
   if (!name) { toast('Введите имя', 'error'); return; }
-  const newRefs = await uploadPending('person');
-  const media = [...existingMedia.person, ...newRefs];
+  const media = await commitMedia('person');
   const id = document.getElementById('person-id').value || uid();
-  const obj = {
-    id, name,
+  const obj = { id, name,
     profession: document.getElementById('person-profession').value,
     phone: document.getElementById('person-phone').value.trim(),
     email: document.getElementById('person-email').value.trim(),
@@ -978,11 +946,11 @@ async function savePerson() {
     notes: document.getElementById('person-notes').value.trim(),
     media, createdAt: Date.now()
   };
-  const idx = DB.people.findIndex(x => x.id === id);
-  if (idx >= 0) DB.people[idx] = obj; else DB.people.unshift(obj);
-  await YD.saveDB();
+  const idx = DB.people.findIndex(x=>x.id===id);
+  if (idx>=0) DB.people[idx]=obj; else DB.people.unshift(obj);
+  await persistDB();
   closeModal('modal-person'); toast('Сохранено!', 'success');
-  updateBannerAndBadges(); filterPeople();
+  updateBadges(); filterPeople();
 }
 
 function loadPeople() { filterPeople(); }
@@ -990,58 +958,37 @@ function loadPeople() { filterPeople(); }
 function filterPeople() {
   const q = document.getElementById('search-people').value.toLowerCase();
   const pr = document.getElementById('filter-profession').value;
-  renderPeopleGrid(DB.people.filter(p => p.name.toLowerCase().includes(q) && (!pr || p.profession === pr)));
+  renderPeopleGrid(DB.people.filter(p=>p.name.toLowerCase().includes(q)&&(!pr||p.profession===pr)));
 }
 
 async function renderPeopleGrid(list) {
   const g = document.getElementById('people-grid');
-  if (!list.length) {
-    g.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">👥</div><h3>Нет людей</h3><p>Нажмите «+ Добавить»</p></div>`; return;
-  }
-  g.innerHTML = '';
+  if (!list.length) { g.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">👥</div><h3>Нет людей</h3><p>Нажмите «+ Добавить»</p></div>`; return; }
+  g.innerHTML='';
   for (const p of list) {
     const card = document.createElement('div');
-    card.className = 'card'; card.onclick = () => openPersonDetail(p.id);
-    let mediaHtml = `<div class="no-media">👤</div>`;
+    card.className='card'; card.onclick=()=>openPersonDetail(p.id);
+    let mh=`<div class="no-media">👤</div>`;
     if (p.media?.length) {
-      const m = await getMediaDisplayUrl(p.media[0]);
-      if (m) {
-        mediaHtml = m.type.startsWith('image/') ? `<img src="${m.url}" loading="lazy">` : `<video src="${m.url}" muted></video>`;
-        if (p.media.length > 1) mediaHtml += `<div class="media-count">+${p.media.length-1}</div>`;
-      }
+      const m = await getMediaUrl(p.media[0]);
+      if (m) { mh = m.type.startsWith('image/') ? `<img src="${m.url}" loading="lazy">` : `<video src="${m.url}" muted></video>`; if (p.media.length>1) mh+=`<div class="media-count">+${p.media.length-1}</div>`; }
     }
-    const tags = (p.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('');
-    card.innerHTML = `<div class="card-media">${mediaHtml}</div>
-      <div class="card-body">
-        <div class="card-title">${p.name}</div>
-        <div class="card-subtitle">${p.profession}</div>
-        ${p.phone?`<div style="font-size:12px;color:var(--text2);margin-top:4px">📞 ${p.phone}</div>`:''}
-        ${tags?`<div class="card-tags">${tags}</div>`:''}
-      </div>`;
+    const tags=(p.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('');
+    card.innerHTML=`<div class="card-media">${mh}</div><div class="card-body"><div class="card-title">${p.name}</div><div class="card-subtitle">${p.profession}</div>${p.phone?`<div style="font-size:12px;color:var(--text2);margin-top:4px">📞 ${p.phone}</div>`:''}${tags?`<div class="card-tags">${tags}</div>`:''}</div>`;
     g.appendChild(card);
   }
 }
 
 async function openPersonDetail(id) {
-  const p = DB.people.find(x => x.id === id); if (!p) return;
+  const p = DB.people.find(x=>x.id===id); if (!p) return;
   document.getElementById('detail-title').textContent = p.name;
   document.getElementById('detail-subtitle').textContent = p.profession;
-  let mh = await buildMediaGrid(p.media);
-  document.getElementById('detail-body').innerHTML = `
-    <div class="form-row">
-      <div>
-        ${p.phone?`<div class="detail-label">Телефон</div><div class="detail-value">📞 ${p.phone}</div>`:''}
-        ${p.email?`<div class="detail-label">Email</div><div class="detail-value">✉️ ${p.email}</div>`:''}
-        ${p.tags?.length?`<div class="detail-label">Теги</div><div class="detail-value"><div class="card-tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div></div>`:''}
-      </div>
-      <div>${p.notes?`<div class="detail-label">Заметки</div><div class="detail-value" style="white-space:pre-wrap">${p.notes}</div>`:''}</div>
-    </div>${mh}`;
-  document.getElementById('detail-edit-btn').onclick = () => openEditPerson(id);
-  document.getElementById('detail-delete-btn').onclick = async () => {
-    if (await showConfirm('Удалить человека', `Удалить "${p.name}"?`)) {
-      for (const ref of p.media||[]) await YD.deleteFile(ref.id, ref.ext);
-      DB.people = DB.people.filter(x => x.id !== id);
-      await YD.saveDB(); closeDetail(); loadPeople(); updateBannerAndBadges(); toast('Удалено', 'success');
+  document.getElementById('detail-body').innerHTML = `<div class="form-row"><div>${p.phone?`<div class="detail-label">Телефон</div><div class="detail-value">📞 ${p.phone}</div>`:''} ${p.email?`<div class="detail-label">Email</div><div class="detail-value">✉️ ${p.email}</div>`:''} ${p.tags?.length?`<div class="detail-label">Теги</div><div class="detail-value"><div class="card-tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div></div>`:''}</div><div>${p.notes?`<div class="detail-label">Заметки</div><div class="detail-value" style="white-space:pre-wrap">${p.notes}</div>`:''}</div></div>${await buildMediaGrid(p.media)}`;
+  document.getElementById('detail-edit-btn').onclick=()=>openEditPerson(id);
+  document.getElementById('detail-delete-btn').onclick=async()=>{
+    if (await showConfirm('Удалить человека',`Удалить "${p.name}"?`)) {
+      for (const ref of p.media||[]) { await idbDel(ref.id); await YD.deleteFile(ref.id,ref.ext); }
+      DB.people=DB.people.filter(x=>x.id!==id); await persistDB(); closeDetail(); loadPeople(); updateBadges(); toast('Удалено','success');
     }
   };
   document.getElementById('detail-overlay').classList.add('open');
@@ -1052,110 +999,71 @@ async function openPersonDetail(id) {
 // =====================================================================
 async function openAddLocation() {
   clearCtx('location');
-  document.getElementById('modal-location-title').textContent = 'Добавить локацию';
-  ['location-id','location-name','location-address','location-desc','location-tags','location-notes'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('location-type').value = 'Интерьер';
+  document.getElementById('modal-location-title').textContent='Добавить локацию';
+  ['location-id','location-name','location-address','location-desc','location-tags','location-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('location-type').value='Интерьер';
   openModal('modal-location');
 }
 
 async function openEditLocation(id) {
-  const loc = DB.locations.find(x => x.id === id); if (!loc) return;
+  const loc=DB.locations.find(x=>x.id===id); if (!loc) return;
   clearCtx('location');
-  document.getElementById('modal-location-title').textContent = 'Редактировать локацию';
-  document.getElementById('location-id').value = loc.id;
-  document.getElementById('location-name').value = loc.name;
-  document.getElementById('location-type').value = loc.type;
-  document.getElementById('location-address').value = loc.address || '';
-  document.getElementById('location-desc').value = loc.description || '';
-  document.getElementById('location-tags').value = (loc.tags||[]).join(', ');
-  document.getElementById('location-notes').value = loc.notes || '';
-  existingMedia.location = [...(loc.media||[])];
-  for (const ref of existingMedia.location) {
-    const m = await getMediaDisplayUrl(ref);
-    if (m) renderThumb(ref.id, m.url, m.type, 'location', true, ref.ext);
-  }
+  document.getElementById('modal-location-title').textContent='Редактировать локацию';
+  document.getElementById('location-id').value=loc.id;
+  document.getElementById('location-name').value=loc.name;
+  document.getElementById('location-type').value=loc.type;
+  document.getElementById('location-address').value=loc.address||'';
+  document.getElementById('location-desc').value=loc.description||'';
+  document.getElementById('location-tags').value=(loc.tags||[]).join(', ');
+  document.getElementById('location-notes').value=loc.notes||'';
+  existingMedia.location=[...(loc.media||[])];
+  for (const ref of existingMedia.location) { const m=await getMediaUrl(ref); if (m) renderThumb(ref.id,m.url,m.type,'location',true,ref.ext); }
   closeDetail(); openModal('modal-location');
 }
 
 async function saveLocation() {
-  const name = document.getElementById('location-name').value.trim();
-  if (!name) { toast('Введите название', 'error'); return; }
-  const newRefs = await uploadPending('location');
-  const media = [...existingMedia.location, ...newRefs];
-  const id = document.getElementById('location-id').value || uid();
-  const obj = {
-    id, name,
-    type: document.getElementById('location-type').value,
-    address: document.getElementById('location-address').value.trim(),
-    description: document.getElementById('location-desc').value.trim(),
-    tags: document.getElementById('location-tags').value.split(',').map(t=>t.trim()).filter(Boolean),
-    notes: document.getElementById('location-notes').value.trim(),
-    media, createdAt: Date.now()
-  };
-  const idx = DB.locations.findIndex(x => x.id === id);
-  if (idx >= 0) DB.locations[idx] = obj; else DB.locations.unshift(obj);
-  await YD.saveDB();
-  closeModal('modal-location'); toast('Сохранено!', 'success');
-  updateBannerAndBadges(); filterLocations();
+  const name=document.getElementById('location-name').value.trim();
+  if (!name) { toast('Введите название','error'); return; }
+  const media=await commitMedia('location');
+  const id=document.getElementById('location-id').value||uid();
+  const obj={id,name,type:document.getElementById('location-type').value,address:document.getElementById('location-address').value.trim(),description:document.getElementById('location-desc').value.trim(),tags:document.getElementById('location-tags').value.split(',').map(t=>t.trim()).filter(Boolean),notes:document.getElementById('location-notes').value.trim(),media,createdAt:Date.now()};
+  const idx=DB.locations.findIndex(x=>x.id===id);
+  if (idx>=0) DB.locations[idx]=obj; else DB.locations.unshift(obj);
+  await persistDB(); closeModal('modal-location'); toast('Сохранено!','success'); updateBadges(); filterLocations();
 }
 
 function loadLocations() { filterLocations(); }
 
 function filterLocations() {
-  const q = document.getElementById('search-locations').value.toLowerCase();
-  const t = document.getElementById('filter-loc-type').value;
-  renderLocGrid(DB.locations.filter(l => l.name.toLowerCase().includes(q) && (!t || l.type === t)));
+  const q=document.getElementById('search-locations').value.toLowerCase();
+  const t=document.getElementById('filter-loc-type').value;
+  renderLocGrid(DB.locations.filter(l=>l.name.toLowerCase().includes(q)&&(!t||l.type===t)));
 }
 
 async function renderLocGrid(list) {
-  const g = document.getElementById('locations-grid');
-  if (!list.length) {
-    g.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📍</div><h3>Нет локаций</h3></div>`; return;
-  }
-  g.innerHTML = '';
+  const g=document.getElementById('locations-grid');
+  if (!list.length) { g.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📍</div><h3>Нет локаций</h3></div>`; return; }
+  g.innerHTML='';
   for (const loc of list) {
-    const card = document.createElement('div');
-    card.className = 'card'; card.onclick = () => openLocDetail(loc.id);
-    let mediaHtml = `<div class="no-media">🏛</div>`;
-    if (loc.media?.length) {
-      const m = await getMediaDisplayUrl(loc.media[0]);
-      if (m) {
-        mediaHtml = m.type.startsWith('image/') ? `<img src="${m.url}" loading="lazy">` : `<video src="${m.url}" muted></video>`;
-        if (loc.media.length > 1) mediaHtml += `<div class="media-count">+${loc.media.length-1}</div>`;
-      }
-    }
-    const tags = (loc.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('');
-    card.innerHTML = `<div class="card-media">${mediaHtml}</div>
-      <div class="card-body">
-        <div class="card-title">${loc.name}</div>
-        <div class="card-subtitle">${loc.type}${loc.address?' · '+loc.address:''}</div>
-        ${loc.description?`<div style="font-size:12px;color:var(--text2);margin-top:4px">${loc.description.slice(0,80)}${loc.description.length>80?'...':''}</div>`:''}
-        ${tags?`<div class="card-tags">${tags}</div>`:''}
-      </div>`;
+    const card=document.createElement('div'); card.className='card'; card.onclick=()=>openLocDetail(loc.id);
+    let mh=`<div class="no-media">🏛</div>`;
+    if (loc.media?.length) { const m=await getMediaUrl(loc.media[0]); if (m) { mh=m.type.startsWith('image/')?`<img src="${m.url}" loading="lazy">`:`<video src="${m.url}" muted></video>`; if (loc.media.length>1) mh+=`<div class="media-count">+${loc.media.length-1}</div>`; } }
+    const tags=(loc.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('');
+    card.innerHTML=`<div class="card-media">${mh}</div><div class="card-body"><div class="card-title">${loc.name}</div><div class="card-subtitle">${loc.type}${loc.address?' · '+loc.address:''}</div>${loc.description?`<div style="font-size:12px;color:var(--text2);margin-top:4px">${loc.description.slice(0,80)}${loc.description.length>80?'...':''}</div>`:''}${tags?`<div class="card-tags">${tags}</div>`:''}</div>`;
     g.appendChild(card);
   }
 }
 
 async function openLocDetail(id) {
-  const loc = DB.locations.find(x => x.id === id); if (!loc) return;
-  document.getElementById('detail-title').textContent = loc.name;
-  document.getElementById('detail-subtitle').textContent = `${loc.type}${loc.address?' · '+loc.address:''}`;
-  let mh = await buildMediaGrid(loc.media);
-  document.getElementById('detail-body').innerHTML = `
-    <div class="form-row">
-      <div>
-        ${loc.address?`<div class="detail-label">Адрес</div><div class="detail-value">📍 ${loc.address}</div>`:''}
-        ${loc.description?`<div class="detail-label">Описание</div><div class="detail-value" style="white-space:pre-wrap">${loc.description}</div>`:''}
-        ${loc.tags?.length?`<div class="detail-label">Теги</div><div class="detail-value"><div class="card-tags">${loc.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div></div>`:''}
-      </div>
-      <div>${loc.notes?`<div class="detail-label">Заметки</div><div class="detail-value" style="white-space:pre-wrap">${loc.notes}</div>`:''}</div>
-    </div>${mh}`;
-  document.getElementById('detail-edit-btn').onclick = () => openEditLocation(id);
-  document.getElementById('detail-delete-btn').onclick = async () => {
-    if (await showConfirm('Удалить локацию', `Удалить "${loc.name}"?`)) {
-      for (const ref of loc.media||[]) await YD.deleteFile(ref.id, ref.ext);
-      DB.locations = DB.locations.filter(x => x.id !== id);
-      await YD.saveDB(); closeDetail(); loadLocations(); updateBannerAndBadges(); toast('Удалено', 'success');
+  const loc=DB.locations.find(x=>x.id===id); if (!loc) return;
+  document.getElementById('detail-title').textContent=loc.name;
+  document.getElementById('detail-subtitle').textContent=`${loc.type}${loc.address?' · '+loc.address:''}`;
+  document.getElementById('detail-body').innerHTML=`<div class="form-row"><div>${loc.address?`<div class="detail-label">Адрес</div><div class="detail-value">📍 ${loc.address}</div>`:''} ${loc.description?`<div class="detail-label">Описание</div><div class="detail-value" style="white-space:pre-wrap">${loc.description}</div>`:''} ${loc.tags?.length?`<div class="detail-label">Теги</div><div class="detail-value"><div class="card-tags">${loc.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div></div>`:''}</div><div>${loc.notes?`<div class="detail-label">Заметки</div><div class="detail-value" style="white-space:pre-wrap">${loc.notes}</div>`:''}</div></div>${await buildMediaGrid(loc.media)}`;
+  document.getElementById('detail-edit-btn').onclick=()=>openEditLocation(id);
+  document.getElementById('detail-delete-btn').onclick=async()=>{
+    if (await showConfirm('Удалить локацию',`Удалить "${loc.name}"?`)) {
+      for (const ref of loc.media||[]) { await idbDel(ref.id); await YD.deleteFile(ref.id,ref.ext); }
+      DB.locations=DB.locations.filter(x=>x.id!==id); await persistDB(); closeDetail(); loadLocations(); updateBadges(); toast('Удалено','success');
     }
   };
   document.getElementById('detail-overlay').classList.add('open');
@@ -1166,114 +1074,70 @@ async function openLocDetail(id) {
 // =====================================================================
 async function openAddScript() {
   clearCtx('script');
-  document.getElementById('modal-script-title').textContent = 'Добавить сценарий';
-  ['script-id','script-title','script-version','script-author','script-project','script-content','script-notes'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('script-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('modal-script-title').textContent='Добавить сценарий';
+  ['script-id','script-title','script-version','script-author','script-project','script-content','script-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('script-date').value=new Date().toISOString().split('T')[0];
   openModal('modal-script');
 }
 
 async function openEditScript(id) {
-  const s = DB.scripts.find(x => x.id === id); if (!s) return;
+  const s=DB.scripts.find(x=>x.id===id); if (!s) return;
   clearCtx('script');
-  document.getElementById('modal-script-title').textContent = 'Редактировать сценарий';
-  document.getElementById('script-id').value = s.id;
-  document.getElementById('script-title').value = s.title;
-  document.getElementById('script-version').value = s.version || '';
-  document.getElementById('script-author').value = s.author || '';
-  document.getElementById('script-date').value = s.date || '';
-  document.getElementById('script-project').value = s.project || '';
-  document.getElementById('script-content').value = s.content || '';
-  document.getElementById('script-notes').value = s.notes || '';
-  existingMedia.script = [...(s.media||[])];
-  for (const ref of existingMedia.script) {
-    const m = await getMediaDisplayUrl(ref);
-    if (m) renderThumb(ref.id, m.url, m.type, 'script', true, ref.ext);
-  }
+  document.getElementById('modal-script-title').textContent='Редактировать сценарий';
+  document.getElementById('script-id').value=s.id;
+  document.getElementById('script-title').value=s.title;
+  document.getElementById('script-version').value=s.version||'';
+  document.getElementById('script-author').value=s.author||'';
+  document.getElementById('script-date').value=s.date||'';
+  document.getElementById('script-project').value=s.project||'';
+  document.getElementById('script-content').value=s.content||'';
+  document.getElementById('script-notes').value=s.notes||'';
+  existingMedia.script=[...(s.media||[])];
+  for (const ref of existingMedia.script) { const m=await getMediaUrl(ref); if (m) renderThumb(ref.id,m.url,m.type,'script',true,ref.ext); }
   closeDetail(); openModal('modal-script');
 }
 
 async function saveScript() {
-  const title = document.getElementById('script-title').value.trim();
-  if (!title) { toast('Введите название', 'error'); return; }
-  const newRefs = await uploadPending('script');
-  const media = [...existingMedia.script, ...newRefs];
-  const id = document.getElementById('script-id').value || uid();
-  const obj = {
-    id, title,
-    version: document.getElementById('script-version').value.trim(),
-    author: document.getElementById('script-author').value.trim(),
-    date: document.getElementById('script-date').value,
-    project: document.getElementById('script-project').value.trim(),
-    content: document.getElementById('script-content').value.trim(),
-    notes: document.getElementById('script-notes').value.trim(),
-    media, createdAt: Date.now()
-  };
-  const idx = DB.scripts.findIndex(x => x.id === id);
-  if (idx >= 0) DB.scripts[idx] = obj; else DB.scripts.unshift(obj);
-  await YD.saveDB();
-  closeModal('modal-script'); toast('Сохранено!', 'success');
-  updateBannerAndBadges(); filterScripts();
+  const title=document.getElementById('script-title').value.trim();
+  if (!title) { toast('Введите название','error'); return; }
+  const media=await commitMedia('script');
+  const id=document.getElementById('script-id').value||uid();
+  const obj={id,title,version:document.getElementById('script-version').value.trim(),author:document.getElementById('script-author').value.trim(),date:document.getElementById('script-date').value,project:document.getElementById('script-project').value.trim(),content:document.getElementById('script-content').value.trim(),notes:document.getElementById('script-notes').value.trim(),media,createdAt:Date.now()};
+  const idx=DB.scripts.findIndex(x=>x.id===id);
+  if (idx>=0) DB.scripts[idx]=obj; else DB.scripts.unshift(obj);
+  await persistDB(); closeModal('modal-script'); toast('Сохранено!','success'); updateBadges(); filterScripts();
 }
 
 function loadScripts() { filterScripts(); }
-
 function filterScripts() {
-  const q = document.getElementById('search-scripts').value.toLowerCase();
-  renderScriptsTable(DB.scripts.filter(s =>
-    s.title.toLowerCase().includes(q)||(s.author||'').toLowerCase().includes(q)||(s.project||'').toLowerCase().includes(q)
-  ));
+  const q=document.getElementById('search-scripts').value.toLowerCase();
+  renderScriptsTable(DB.scripts.filter(s=>s.title.toLowerCase().includes(q)||(s.author||'').toLowerCase().includes(q)||(s.project||'').toLowerCase().includes(q)));
 }
 
 function renderScriptsTable(list) {
-  const tbody = document.getElementById('scripts-tbody');
-  const empty = document.getElementById('scripts-empty');
+  const tbody=document.getElementById('scripts-tbody'); const empty=document.getElementById('scripts-empty');
   if (!list.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
-  empty.style.display = 'none';
-  const fd = d => d ? new Date(d+'T00:00').toLocaleDateString('ru') : '—';
-  tbody.innerHTML = list.map(s => `<tr onclick="openScriptDetail('${s.id}')">
-    <td><strong>${s.title}</strong></td>
-    <td class="td-muted">${s.author||'—'}</td>
-    <td class="td-muted">${s.project||'—'}</td>
-    <td class="td-muted">${s.version||'—'}</td>
-    <td class="td-muted">${fd(s.date)}</td>
-    <td class="td-muted">${s.media?.length?'📎 '+s.media.length:'—'}</td>
-    <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEditScript('${s.id}')">✏️</button></td>
-  </tr>`).join('');
+  empty.style.display='none';
+  const fd=d=>d?new Date(d+'T00:00').toLocaleDateString('ru'):'—';
+  tbody.innerHTML=list.map(s=>`<tr onclick="openScriptDetail('${s.id}')"><td><strong>${s.title}</strong></td><td class="td-muted">${s.author||'—'}</td><td class="td-muted">${s.project||'—'}</td><td class="td-muted">${s.version||'—'}</td><td class="td-muted">${fd(s.date)}</td><td class="td-muted">${s.media?.length?'📎 '+s.media.length:'—'}</td><td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEditScript('${s.id}')">✏️</button></td></tr>`).join('');
 }
 
 async function openScriptDetail(id) {
-  const s = DB.scripts.find(x => x.id === id); if (!s) return;
-  document.getElementById('detail-title').textContent = s.title;
-  document.getElementById('detail-subtitle').textContent = [s.author, s.project].filter(Boolean).join(' · ');
-  let filesHtml = '';
+  const s=DB.scripts.find(x=>x.id===id); if (!s) return;
+  document.getElementById('detail-title').textContent=s.title;
+  document.getElementById('detail-subtitle').textContent=[s.author,s.project].filter(Boolean).join(' · ');
+  let fh='';
   if (s.media?.length) {
-    filesHtml = '<div class="detail-label" style="margin-top:20px">Вложения</div><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">';
-    for (const ref of s.media) {
-      const m = await getMediaDisplayUrl(ref);
-      if (m) {
-        if (m.type.startsWith('image/')) filesHtml += `<div class="detail-media-item" onclick="lightbox('${m.url}','image')" style="max-width:220px"><img src="${m.url}"></div>`;
-        else filesHtml += `<a href="${m.url}" target="_blank" download="${ref.name}" class="btn btn-ghost btn-sm" style="width:fit-content">📄 ${ref.name}</a>`;
-      }
-    }
-    filesHtml += '</div>';
+    fh='<div class="detail-label" style="margin-top:20px">Вложения</div><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">';
+    for (const ref of s.media) { const m=await getMediaUrl(ref); if (m) { if (m.type.startsWith('image/')) fh+=`<div class="detail-media-item" onclick="lightbox('${m.url}','image')" style="max-width:220px"><img src="${m.url}"></div>`; else fh+=`<a href="${m.url}" download="${ref.name}" class="btn btn-ghost btn-sm" style="width:fit-content">📄 ${ref.name}</a>`; } }
+    fh+='</div>';
   }
-  document.getElementById('detail-body').innerHTML = `
-    <div class="form-row">
-      <div>
-        ${s.version?`<div class="detail-label">Версия</div><div class="detail-value">${s.version}</div>`:''}
-        ${s.date?`<div class="detail-label">Дата</div><div class="detail-value">${new Date(s.date+'T00:00').toLocaleDateString('ru')}</div>`:''}
-        ${s.project?`<div class="detail-label">Проект</div><div class="detail-value">${s.project}</div>`:''}
-      </div>
-      <div>${s.notes?`<div class="detail-label">Заметки</div><div class="detail-value" style="white-space:pre-wrap">${s.notes}</div>`:''}</div>
-    </div>
-    ${s.content?`<div class="detail-label" style="margin-top:16px">Содержание</div><div style="background:var(--bg3);padding:16px;border-radius:var(--r);white-space:pre-wrap;font-size:14px;margin-top:8px;max-height:300px;overflow-y:auto;line-height:1.6">${s.content}</div>`:''}
-    ${filesHtml}`;
-  document.getElementById('detail-edit-btn').onclick = () => openEditScript(id);
-  document.getElementById('detail-delete-btn').onclick = async () => {
-    if (await showConfirm('Удалить сценарий', `Удалить "${s.title}"?`)) {
-      for (const ref of s.media||[]) await YD.deleteFile(ref.id, ref.ext);
-      DB.scripts = DB.scripts.filter(x => x.id !== id);
-      await YD.saveDB(); closeDetail(); loadScripts(); updateBannerAndBadges(); toast('Удалено', 'success');
+  document.getElementById('detail-body').innerHTML=`<div class="form-row"><div>${s.version?`<div class="detail-label">Версия</div><div class="detail-value">${s.version}</div>`:''} ${s.date?`<div class="detail-label">Дата</div><div class="detail-value">${new Date(s.date+'T00:00').toLocaleDateString('ru')}</div>`:''} ${s.project?`<div class="detail-label">Проект</div><div class="detail-value">${s.project}</div>`:''}</div><div>${s.notes?`<div class="detail-label">Заметки</div><div class="detail-value" style="white-space:pre-wrap">${s.notes}</div>`:''}</div></div>${s.content?`<div class="detail-label" style="margin-top:16px">Содержание</div><div style="background:var(--bg3);padding:16px;border-radius:var(--r);white-space:pre-wrap;font-size:14px;margin-top:8px;max-height:300px;overflow-y:auto;line-height:1.6">${s.content}</div>`:''}${fh}`;
+  document.getElementById('detail-edit-btn').onclick=()=>openEditScript(id);
+  document.getElementById('detail-delete-btn').onclick=async()=>{
+    if (await showConfirm('Удалить сценарий',`Удалить "${s.title}"?`)) {
+      for (const ref of s.media||[]) { await idbDel(ref.id); await YD.deleteFile(ref.id,ref.ext); }
+      DB.scripts=DB.scripts.filter(x=>x.id!==id); await persistDB(); closeDetail(); loadScripts(); updateBadges(); toast('Удалено','success');
     }
   };
   document.getElementById('detail-overlay').classList.add('open');
@@ -1284,111 +1148,70 @@ async function openScriptDetail(id) {
 // =====================================================================
 async function openAddProject() {
   clearCtx('project');
-  document.getElementById('modal-project-title').textContent = 'Добавить проект';
+  document.getElementById('modal-project-title').textContent='Добавить проект';
   ['project-id','project-name','project-client','project-start','project-end','project-desc','project-notes'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('project-type').value = 'Реклама';
-  document.getElementById('project-status').value = 'Разработка';
+  document.getElementById('project-type').value='Реклама';
+  document.getElementById('project-status').value='Разработка';
   openModal('modal-project');
 }
 
 async function openEditProject(id) {
-  const p = DB.projects.find(x => x.id === id); if (!p) return;
+  const p=DB.projects.find(x=>x.id===id); if (!p) return;
   clearCtx('project');
-  document.getElementById('modal-project-title').textContent = 'Редактировать проект';
-  document.getElementById('project-id').value = p.id;
-  document.getElementById('project-name').value = p.name;
-  document.getElementById('project-type').value = p.type;
-  document.getElementById('project-client').value = p.client || '';
-  document.getElementById('project-status').value = p.status;
-  document.getElementById('project-start').value = p.dateStart || '';
-  document.getElementById('project-end').value = p.dateEnd || '';
-  document.getElementById('project-desc').value = p.description || '';
-  document.getElementById('project-notes').value = p.notes || '';
-  existingMedia.project = [...(p.media||[])];
-  for (const ref of existingMedia.project) {
-    const m = await getMediaDisplayUrl(ref);
-    if (m) renderThumb(ref.id, m.url, m.type, 'project', true, ref.ext);
-  }
+  document.getElementById('modal-project-title').textContent='Редактировать проект';
+  document.getElementById('project-id').value=p.id;
+  document.getElementById('project-name').value=p.name;
+  document.getElementById('project-type').value=p.type;
+  document.getElementById('project-client').value=p.client||'';
+  document.getElementById('project-status').value=p.status;
+  document.getElementById('project-start').value=p.dateStart||'';
+  document.getElementById('project-end').value=p.dateEnd||'';
+  document.getElementById('project-desc').value=p.description||'';
+  document.getElementById('project-notes').value=p.notes||'';
+  existingMedia.project=[...(p.media||[])];
+  for (const ref of existingMedia.project) { const m=await getMediaUrl(ref); if (m) renderThumb(ref.id,m.url,m.type,'project',true,ref.ext); }
   closeDetail(); openModal('modal-project');
 }
 
 async function saveProject() {
-  const name = document.getElementById('project-name').value.trim();
-  if (!name) { toast('Введите название', 'error'); return; }
-  const newRefs = await uploadPending('project');
-  const media = [...existingMedia.project, ...newRefs];
-  const id = document.getElementById('project-id').value || uid();
-  const obj = {
-    id, name,
-    type: document.getElementById('project-type').value,
-    client: document.getElementById('project-client').value.trim(),
-    status: document.getElementById('project-status').value,
-    dateStart: document.getElementById('project-start').value,
-    dateEnd: document.getElementById('project-end').value,
-    description: document.getElementById('project-desc').value.trim(),
-    notes: document.getElementById('project-notes').value.trim(),
-    media, createdAt: Date.now()
-  };
-  const idx = DB.projects.findIndex(x => x.id === id);
-  if (idx >= 0) DB.projects[idx] = obj; else DB.projects.unshift(obj);
-  await YD.saveDB();
-  closeModal('modal-project'); toast('Сохранено!', 'success');
-  updateBannerAndBadges(); filterProjects();
+  const name=document.getElementById('project-name').value.trim();
+  if (!name) { toast('Введите название','error'); return; }
+  const media=await commitMedia('project');
+  const id=document.getElementById('project-id').value||uid();
+  const obj={id,name,type:document.getElementById('project-type').value,client:document.getElementById('project-client').value.trim(),status:document.getElementById('project-status').value,dateStart:document.getElementById('project-start').value,dateEnd:document.getElementById('project-end').value,description:document.getElementById('project-desc').value.trim(),notes:document.getElementById('project-notes').value.trim(),media,createdAt:Date.now()};
+  const idx=DB.projects.findIndex(x=>x.id===id);
+  if (idx>=0) DB.projects[idx]=obj; else DB.projects.unshift(obj);
+  await persistDB(); closeModal('modal-project'); toast('Сохранено!','success'); updateBadges(); filterProjects();
 }
 
 function loadProjects() { filterProjects(); }
-
 function filterProjects() {
-  const q = document.getElementById('search-projects').value.toLowerCase();
-  const st = document.getElementById('filter-proj-status').value;
-  renderProjectsTable(DB.projects.filter(p =>
-    (p.name.toLowerCase().includes(q)||(p.client||'').toLowerCase().includes(q)) && (!st||p.status===st)
-  ));
+  const q=document.getElementById('search-projects').value.toLowerCase();
+  const st=document.getElementById('filter-proj-status').value;
+  renderProjectsTable(DB.projects.filter(p=>(p.name.toLowerCase().includes(q)||(p.client||'').toLowerCase().includes(q))&&(!st||p.status===st)));
 }
 
 function renderProjectsTable(list) {
-  const tbody = document.getElementById('projects-tbody');
-  const empty = document.getElementById('projects-empty');
+  const tbody=document.getElementById('projects-tbody'); const empty=document.getElementById('projects-empty');
   if (!list.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
-  empty.style.display = 'none';
-  const fd = d => d ? new Date(d+'T00:00').toLocaleDateString('ru') : '';
-  tbody.innerHTML = list.map(p => {
-    const cls = SCLS[p.status]||'status-dev';
-    const dates = [fd(p.dateStart),fd(p.dateEnd)].filter(Boolean).join(' — ');
-    return `<tr onclick="openProjectDetail('${p.id}')">
-      <td><strong>${p.name}</strong></td>
-      <td class="td-muted">${p.type}</td>
-      <td class="td-muted">${p.client||'—'}</td>
-      <td><span class="status ${cls}">${p.status}</span></td>
-      <td class="td-muted">${dates||'—'}</td>
-      <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEditProject('${p.id}')">✏️</button></td>
-    </tr>`;
-  }).join('');
+  empty.style.display='none';
+  const fd=d=>d?new Date(d+'T00:00').toLocaleDateString('ru'):'';
+  tbody.innerHTML=list.map(p=>{const cls=SCLS[p.status]||'status-dev'; const dates=[fd(p.dateStart),fd(p.dateEnd)].filter(Boolean).join(' — '); return `<tr onclick="openProjectDetail('${p.id}')"><td><strong>${p.name}</strong></td><td class="td-muted">${p.type}</td><td class="td-muted">${p.client||'—'}</td><td><span class="status ${cls}">${p.status}</span></td><td class="td-muted">${dates||'—'}</td><td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEditProject('${p.id}')">✏️</button></td></tr>`;}).join('');
 }
 
 async function openProjectDetail(id) {
-  const p = DB.projects.find(x => x.id === id); if (!p) return;
-  const cls = SCLS[p.status]||'status-dev';
-  document.getElementById('detail-title').textContent = p.name;
-  document.getElementById('detail-subtitle').innerHTML = `<span class="status ${cls}">${p.status}</span> &nbsp; ${p.type}`;
-  const fd = d => d ? new Date(d+'T00:00').toLocaleDateString('ru') : '';
-  const dates = [p.dateStart&&'Начало: '+fd(p.dateStart), p.dateEnd&&'Конец: '+fd(p.dateEnd)].filter(Boolean).join(' · ');
-  let mh = await buildMediaGrid(p.media);
-  document.getElementById('detail-body').innerHTML = `
-    <div class="form-row">
-      <div>
-        ${p.client?`<div class="detail-label">Клиент</div><div class="detail-value">${p.client}</div>`:''}
-        ${dates?`<div class="detail-label">Сроки</div><div class="detail-value">${dates}</div>`:''}
-        ${p.description?`<div class="detail-label">Описание</div><div class="detail-value" style="white-space:pre-wrap">${p.description}</div>`:''}
-      </div>
-      <div>${p.notes?`<div class="detail-label">Заметки</div><div class="detail-value" style="white-space:pre-wrap">${p.notes}</div>`:''}</div>
-    </div>${mh}`;
-  document.getElementById('detail-edit-btn').onclick = () => openEditProject(id);
-  document.getElementById('detail-delete-btn').onclick = async () => {
-    if (await showConfirm('Удалить проект', `Удалить "${p.name}"?`)) {
-      for (const ref of p.media||[]) await YD.deleteFile(ref.id, ref.ext);
-      DB.projects = DB.projects.filter(x => x.id !== id);
-      await YD.saveDB(); closeDetail(); loadProjects(); updateBannerAndBadges(); toast('Удалено', 'success');
+  const p=DB.projects.find(x=>x.id===id); if (!p) return;
+  const cls=SCLS[p.status]||'status-dev';
+  document.getElementById('detail-title').textContent=p.name;
+  document.getElementById('detail-subtitle').innerHTML=`<span class="status ${cls}">${p.status}</span> &nbsp; ${p.type}`;
+  const fd=d=>d?new Date(d+'T00:00').toLocaleDateString('ru'):'';
+  const dates=[p.dateStart&&'Начало: '+fd(p.dateStart),p.dateEnd&&'Конец: '+fd(p.dateEnd)].filter(Boolean).join(' · ');
+  document.getElementById('detail-body').innerHTML=`<div class="form-row"><div>${p.client?`<div class="detail-label">Клиент</div><div class="detail-value">${p.client}</div>`:''} ${dates?`<div class="detail-label">Сроки</div><div class="detail-value">${dates}</div>`:''} ${p.description?`<div class="detail-label">Описание</div><div class="detail-value" style="white-space:pre-wrap">${p.description}</div>`:''}</div><div>${p.notes?`<div class="detail-label">Заметки</div><div class="detail-value" style="white-space:pre-wrap">${p.notes}</div>`:''}</div></div>${await buildMediaGrid(p.media)}`;
+  document.getElementById('detail-edit-btn').onclick=()=>openEditProject(id);
+  document.getElementById('detail-delete-btn').onclick=async()=>{
+    if (await showConfirm('Удалить проект',`Удалить "${p.name}"?`)) {
+      for (const ref of p.media||[]) { await idbDel(ref.id); await YD.deleteFile(ref.id,ref.ext); }
+      DB.projects=DB.projects.filter(x=>x.id!==id); await persistDB(); closeDetail(); loadProjects(); updateBadges(); toast('Удалено','success');
     }
   };
   document.getElementById('detail-overlay').classList.add('open');
@@ -1398,25 +1221,11 @@ async function openProjectDetail(id) {
 // DASHBOARD
 // =====================================================================
 function loadDashboard() {
-  updateBannerAndBadges();
-  const all = [
-    ...DB.people.map(p=>({...p,_t:'people',_icon:'👤',_sub:p.profession})),
-    ...DB.locations.map(l=>({...l,_t:'locations',_icon:'📍',_sub:l.type})),
-    ...DB.scripts.map(s=>({...s,name:s.title,_t:'scripts',_icon:'📄',_sub:'Сценарий'})),
-    ...DB.projects.map(p=>({...p,_t:'projects',_icon:'🎥',_sub:p.type}))
-  ].sort((a,b)=>b.createdAt-a.createdAt).slice(0,8);
-  const c = document.getElementById('dashboard-recent');
-  if (!all.length) {
-    c.innerHTML=`<div class="empty-state"><div class="empty-icon">🎬</div><h3>База пустая</h3><p>Начните добавлять людей, локации, сценарии и проекты</p></div>`; return;
-  }
-  c.innerHTML=`<div class="cards-grid">${all.map(item=>`
-    <div class="card" onclick="showPage('${item._t}')">
-      <div class="card-body" style="padding:18px">
-        <div style="font-size:26px;margin-bottom:10px">${item._icon}</div>
-        <div class="card-title">${item.name}</div>
-        <div class="card-subtitle">${item._sub}</div>
-      </div>
-    </div>`).join('')}</div>`;
+  updateBadges();
+  const all=[...DB.people.map(p=>({...p,_t:'people',_icon:'👤',_sub:p.profession})),...DB.locations.map(l=>({...l,_t:'locations',_icon:'📍',_sub:l.type})),...DB.scripts.map(s=>({...s,name:s.title,_t:'scripts',_icon:'📄',_sub:'Сценарий'})),...DB.projects.map(p=>({...p,_t:'projects',_icon:'🎥',_sub:p.type}))].sort((a,b)=>b.createdAt-a.createdAt).slice(0,8);
+  const c=document.getElementById('dashboard-recent');
+  if (!all.length) { c.innerHTML=`<div class="empty-state"><div class="empty-icon">🎬</div><h3>База пустая</h3><p>Начните добавлять людей, локации, сценарии и проекты</p></div>`; return; }
+  c.innerHTML=`<div class="cards-grid">${all.map(item=>`<div class="card" onclick="showPage('${item._t}')"><div class="card-body" style="padding:18px"><div style="font-size:26px;margin-bottom:10px">${item._icon}</div><div class="card-title">${item.name}</div><div class="card-subtitle">${item._sub}</div></div></div>`).join('')}</div>`;
 }
 
 // =====================================================================
@@ -1424,51 +1233,35 @@ function loadDashboard() {
 // =====================================================================
 async function buildMediaGrid(refs) {
   if (!refs?.length) return '';
-  let html = '<div class="detail-label" style="margin-top:20px">Медиа</div><div class="detail-media-grid">';
+  let html='<div class="detail-label" style="margin-top:20px">Медиа</div><div class="detail-media-grid">';
   for (const ref of refs) {
-    const m = await getMediaDisplayUrl(ref);
+    const m=await getMediaUrl(ref);
     if (m) {
-      if (m.type.startsWith('image/')) html += `<div class="detail-media-item" onclick="lightbox('${m.url}','image')"><img src="${m.url}" loading="lazy"></div>`;
-      else if (m.type.startsWith('video/')) html += `<div class="detail-media-item" onclick="lightbox('${m.url}','video')"><video src="${m.url}" muted></video></div>`;
+      if (m.type.startsWith('image/')) html+=`<div class="detail-media-item" onclick="lightbox('${m.url}','image')"><img src="${m.url}" loading="lazy"></div>`;
+      else if (m.type.startsWith('video/')) html+=`<div class="detail-media-item" onclick="lightbox('${m.url}','video')"><video src="${m.url}" muted></video></div>`;
     }
   }
-  return html + '</div>';
+  return html+'</div>';
 }
 
-function lightbox(url, type) {
-  const o = document.createElement('div');
-  o.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:2000;display:flex;align-items:center;justify-content:center;cursor:zoom-out';
-  o.onclick = () => o.remove();
-  if (type === 'image') {
-    const img = document.createElement('img');
-    img.src = url; img.style.cssText = 'max-width:94vw;max-height:94vh;border-radius:6px';
-    o.appendChild(img);
-  } else {
-    const v = document.createElement('video');
-    v.src = url; v.controls = true; v.autoplay = true;
-    v.style.cssText = 'max-width:94vw;max-height:94vh;border-radius:6px';
-    v.onclick = e => e.stopPropagation(); o.appendChild(v);
-  }
+function lightbox(url,type) {
+  const o=document.createElement('div');
+  o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:2000;display:flex;align-items:center;justify-content:center;cursor:zoom-out';
+  o.onclick=()=>o.remove();
+  if (type==='image') { const img=document.createElement('img'); img.src=url; img.style.cssText='max-width:94vw;max-height:94vh;border-radius:6px'; o.appendChild(img); }
+  else { const v=document.createElement('video'); v.src=url; v.controls=true; v.autoplay=true; v.style.cssText='max-width:94vw;max-height:94vh;border-radius:6px'; v.onclick=e=>e.stopPropagation(); o.appendChild(v); }
   document.body.appendChild(o);
 }
 
 function exportJSON() {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([JSON.stringify(DB,null,2)],{type:'application/json'}));
-  a.download = `kinobase-${new Date().toISOString().split('T')[0]}.json`;
-  a.click(); toast('Готово', 'success');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(DB,null,2)],{type:'application/json'}));
+  a.download=`kinobase-${new Date().toISOString().split('T')[0]}.json`;
+  a.click(); toast('Готово','success');
 }
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    if (document.getElementById('detail-overlay').classList.contains('open')) { closeDetail(); return; }
-    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
-  }
-});
-
-// Prefill token field if already set
-window.addEventListener('load', () => {
-  if (YD.token) document.getElementById('yd-token-input').placeholder = 'Токен уже сохранён (введите новый для замены)';
+  if (e.key==='Escape') { if (document.getElementById('detail-overlay').classList.contains('open')) { closeDetail(); return; } document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open')); }
 });
 </script>
 </body>
