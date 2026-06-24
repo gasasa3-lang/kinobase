@@ -547,6 +547,22 @@ function dedup(arr) {
   return (arr||[]).filter(x => { if (seen.has(x.id)) return false; seen.add(x.id); return true; });
 }
 
+// Объединяет два массива записей по ID (remote побеждает при совпадении, если он новее)
+function mergeRecords(local, remote) {
+  const map = new Map();
+  for (const item of (local||[])) map.set(item.id, item);
+  for (const item of (remote||[])) {
+    const existing = map.get(item.id);
+    if (!existing) { map.set(item.id, item); }
+    else {
+      const rt = item.updatedAt || item.createdAt || 0;
+      const lt = existing.updatedAt || existing.createdAt || 0;
+      if (rt >= lt) map.set(item.id, item);
+    }
+  }
+  return [...map.values()];
+}
+
 function loadLocal() {
   try {
     const s = localStorage.getItem(LS_KEY);
@@ -697,10 +713,10 @@ async function ydSync() {
     await YD.mkdir(YD.ROOT + '/media');
     const remote = await YD.downloadJSON();
     if (remote) {
-      DB.people    = dedup(remote.people    || DB.people);
-      DB.locations = dedup(remote.locations || DB.locations);
-      DB.scripts   = dedup(remote.scripts   || DB.scripts);
-      DB.projects  = dedup(remote.projects  || DB.projects);
+      DB.people    = mergeRecords(DB.people,    remote.people);
+      DB.locations = mergeRecords(DB.locations, remote.locations);
+      DB.scripts   = mergeRecords(DB.scripts,   remote.scripts);
+      DB.projects  = mergeRecords(DB.projects,  remote.projects);
       saveLocal();
     }
     await YD.uploadJSON();
@@ -1085,7 +1101,7 @@ async function saveLocation() {
   if (!name) { toast('Введите название','error'); return; }
   const media=await commitMedia('location');
   const id=document.getElementById('location-id').value||uid();
-  const obj={id,name,type:document.getElementById('location-type').value,address:document.getElementById('location-address').value.trim(),description:document.getElementById('location-desc').value.trim(),tags:document.getElementById('location-tags').value.split(',').map(t=>t.trim()).filter(Boolean),notes:document.getElementById('location-notes').value.trim(),media,createdAt:Date.now()};
+  const obj={id,name,type:document.getElementById('location-type').value,address:document.getElementById('location-address').value.trim(),description:document.getElementById('location-desc').value.trim(),tags:document.getElementById('location-tags').value.split(',').map(t=>t.trim()).filter(Boolean),notes:document.getElementById('location-notes').value.trim(),media,createdAt:Date.now(),updatedAt:Date.now()};
   const idx=DB.locations.findIndex(x=>x.id===id);
   if (idx>=0) DB.locations[idx]=obj; else DB.locations.unshift(obj);
   await persistDB(); closeModal('modal-location'); toast('Сохранено!','success'); updateBadges(); filterLocations();
@@ -1161,7 +1177,7 @@ async function saveScript() {
   if (!title) { toast('Введите название','error'); return; }
   const media=await commitMedia('script');
   const id=document.getElementById('script-id').value||uid();
-  const obj={id,title,version:document.getElementById('script-version').value.trim(),author:document.getElementById('script-author').value.trim(),date:document.getElementById('script-date').value,project:document.getElementById('script-project').value.trim(),content:document.getElementById('script-content').value.trim(),notes:document.getElementById('script-notes').value.trim(),media,createdAt:Date.now()};
+  const obj={id,title,version:document.getElementById('script-version').value.trim(),author:document.getElementById('script-author').value.trim(),date:document.getElementById('script-date').value,project:document.getElementById('script-project').value.trim(),content:document.getElementById('script-content').value.trim(),notes:document.getElementById('script-notes').value.trim(),media,createdAt:Date.now(),updatedAt:Date.now()};
   const idx=DB.scripts.findIndex(x=>x.id===id);
   if (idx>=0) DB.scripts[idx]=obj; else DB.scripts.unshift(obj);
   await persistDB(); closeModal('modal-script'); toast('Сохранено!','success'); updateBadges(); filterScripts();
@@ -1237,7 +1253,7 @@ async function saveProject() {
   if (!name) { toast('Введите название','error'); return; }
   const media=await commitMedia('project');
   const id=document.getElementById('project-id').value||uid();
-  const obj={id,name,type:document.getElementById('project-type').value,client:document.getElementById('project-client').value.trim(),status:document.getElementById('project-status').value,dateStart:document.getElementById('project-start').value,dateEnd:document.getElementById('project-end').value,description:document.getElementById('project-desc').value.trim(),notes:document.getElementById('project-notes').value.trim(),media,createdAt:Date.now()};
+  const obj={id,name,type:document.getElementById('project-type').value,client:document.getElementById('project-client').value.trim(),status:document.getElementById('project-status').value,dateStart:document.getElementById('project-start').value,dateEnd:document.getElementById('project-end').value,description:document.getElementById('project-desc').value.trim(),notes:document.getElementById('project-notes').value.trim(),media,createdAt:Date.now(),updatedAt:Date.now()};
   const idx=DB.projects.findIndex(x=>x.id===id);
   if (idx>=0) DB.projects[idx]=obj; else DB.projects.unshift(obj);
   await persistDB(); closeModal('modal-project'); toast('Сохранено!','success'); updateBadges(); filterProjects();
