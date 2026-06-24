@@ -242,7 +242,7 @@
   <main class="main-content">
     <!-- DASHBOARD -->
     <div id="page-dashboard" class="page">
-      <div class="page-header"><h2>Дашборд</h2><button class="btn btn-ghost btn-sm" onclick="ydSync()">🔄 Синхронизировать с ЯД</button></div>
+      <div class="page-header"><h2>Дашборд</h2><button class="btn btn-ghost btn-sm" onclick="fbSync()">🔄 Синхронизировать</button></div>
       <div class="page-body">
         <div class="stats-grid">
           <div class="stat-card" onclick="showPage('people')"><div class="stat-icon">👥</div><div class="stat-num" id="stat-people">0</div><div class="stat-label">Людей в базе</div></div>
@@ -617,8 +617,50 @@ function idbDel(id) {
 }
 
 // =====================================================================
-// ЯНДЕКС ДИСК (опциональная синхронизация)
+// FIREBASE REALTIME DATABASE (синхронизация между устройствами)
 // =====================================================================
+const FB = {
+  URL: 'https://kinobase-2ed51-default-rtdb.firebaseio.com',
+
+  async upload() {
+    const r = await fetch(`${this.URL}/db.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ people:DB.people, locations:DB.locations, scripts:DB.scripts, projects:DB.projects })
+    });
+    if (!r.ok) throw new Error(`Firebase запись (${r.status})`);
+  },
+
+  async download() {
+    const r = await fetch(`${this.URL}/db.json?t=${Date.now()}`);
+    if (!r.ok) throw new Error(`Firebase чтение (${r.status})`);
+    return await r.json(); // null если база пустая
+  }
+};
+
+async function fbSync() {
+  setSyncStatus('syncing', 'Синхронизация...');
+  try {
+    const remote = await FB.download();
+    if (remote) {
+      DB.people    = mergeRecords(DB.people,    remote.people);
+      DB.locations = mergeRecords(DB.locations, remote.locations);
+      DB.scripts   = mergeRecords(DB.scripts,   remote.scripts);
+      DB.projects  = mergeRecords(DB.projects,  remote.projects);
+      saveLocal();
+    }
+    await FB.upload();
+    setSyncStatus('ok', 'Синхронизировано ' + new Date().toLocaleTimeString('ru'));
+    updateBadges();
+    loadCurrentPage();
+  } catch(e) {
+    console.error('Firebase sync error:', e);
+    setSyncStatus('error', 'Ошибка синхронизации: ' + e.message);
+    toast('Ошибка синхронизации: ' + e.message, 'error');
+  }
+}
+
+// Яндекс Диск — только для медиафайлов
 const YD = {
   BASE: 'https://cloud-api.yandex.net/v1/disk',
   ROOT: 'disk:/KinoBase',
@@ -629,53 +671,19 @@ const YD = {
   async mkdir(path) {
     try {
       const c = await fetch(`${this.BASE}/resources?path=${encodeURIComponent(path)}`, { headers: this.h() });
-      if (c.status === 404) {
-        await fetch(`${this.BASE}/resources?path=${encodeURIComponent(path)}`, { method:'PUT', headers: this.h() });
-      }
-    } catch(e) {
-      // mkdir failure is non-fatal — folder may already exist
-      console.warn('YD mkdir warning:', e.message);
-    }
-  },
-
-  async uploadJSON() {
-    const data = JSON.stringify({ people:DB.people,locations:DB.locations,scripts:DB.scripts,projects:DB.projects });
-    const blob = new Blob([data], { type:'application/json' });
-    const r1 = await fetch(`${this.BASE}/resources/upload?path=${encodeURIComponent(this.ROOT+'/db.json')}&overwrite=true`, { headers: this.h() });
-    if (!r1.ok) {
-      const txt = await r1.text();
-      throw new Error(`Получение URL загрузки (${r1.status}): ${txt}`);
-    }
-    const { href } = await r1.json();
-    const r2 = await fetch(href, { method:'PUT', body:blob, headers:{ 'Content-Type':'application/json' } });
-    if (!r2.ok) throw new Error(`Загрузка JSON (${r2.status})`);
-  },
-
-  async downloadJSON() {
-    const r1 = await fetch(`${this.BASE}/resources/download?path=${encodeURIComponent(this.ROOT+'/db.json')}`, { headers: this.h() });
-    if (r1.status === 404) return null;
-    if (!r1.ok) {
-      const txt = await r1.text();
-      throw new Error(`Получение URL скачивания (${r1.status}): ${txt}`);
-    }
-    const { href } = await r1.json();
-    const r2 = await fetch(href);
-    if (!r2.ok) throw new Error(`Скачивание JSON (${r2.status})`);
-    return await r2.json();
-  },
-
-  async checkConnection() {
-    const r = await fetch(`${this.BASE}/`, { headers: this.h() });
-    if (!r.ok) throw new Error(`API ${r.status}: ${await r.text()}`);
-    return await r.json();
+      if (c.status === 404) await fetch(`${this.BASE}/resources?path=${encodeURIComponent(path)}`, { method:'PUT', headers: this.h() });
+    } catch(e) { console.warn('YD mkdir:', e.message); }
   },
 
   async uploadFile(id, ext, file) {
-    const path = `${this.ROOT}/media/${id}.${ext}`;
-    const r1 = await fetch(`${this.BASE}/resources/upload?path=${encodeURIComponent(path)}&overwrite=true`, { headers: this.h() });
-    if (!r1.ok) return;
-    const { href } = await r1.json();
-    await fetch(href, { method:'PUT', body:file });
+    try {
+      await this.mkdir(this.ROOT); await this.mkdir(this.ROOT + '/media');
+      const path = `${this.ROOT}/media/${id}.${ext}`;
+      const r1 = await fetch(`${this.BASE}/resources/upload?path=${encodeURIComponent(path)}&overwrite=true`, { headers: this.h() });
+      if (!r1.ok) return;
+      const { href } = await r1.json();
+      await fetch(href, { method:'PUT', body:file });
+    } catch(e) { console.warn('YD uploadFile:', e.message); }
   },
 
   async getFileUrl(id, ext) {
@@ -689,6 +697,12 @@ const YD = {
 
   async deleteFile(id, ext) {
     try { await fetch(`${this.BASE}/resources?path=${encodeURIComponent(this.ROOT+'/media/'+id+'.'+ext)}&permanently=true`, { method:'DELETE', headers: this.h() }); } catch {}
+  },
+
+  async checkConnection() {
+    const r = await fetch(`${this.BASE}/`, { headers: this.h() });
+    if (!r.ok) throw new Error(`API ${r.status}`);
+    return await r.json();
   }
 };
 
@@ -702,31 +716,6 @@ async function checkYDConnection() {
     el.textContent = `✅ Подключено (${gb} ГБ)`; el.style.color = 'var(--success)';
   } catch(e) {
     el.textContent = '❌ Ошибка: ' + e.message; el.style.color = 'var(--danger)';
-  }
-}
-
-async function ydSync() {
-  if (!YD.token) { toast('Токен Яндекс Диска не задан — настройте в Настройках', 'info'); return; }
-  setSyncStatus('syncing', 'Синхронизация...');
-  try {
-    await YD.mkdir(YD.ROOT);
-    await YD.mkdir(YD.ROOT + '/media');
-    const remote = await YD.downloadJSON();
-    if (remote) {
-      DB.people    = mergeRecords(DB.people,    remote.people);
-      DB.locations = mergeRecords(DB.locations, remote.locations);
-      DB.scripts   = mergeRecords(DB.scripts,   remote.scripts);
-      DB.projects  = mergeRecords(DB.projects,  remote.projects);
-      saveLocal();
-    }
-    await YD.uploadJSON();
-    setSyncStatus('ok', 'Синхронизировано ' + new Date().toLocaleTimeString('ru'));
-    updateBadges();
-    loadCurrentPage();
-  } catch(e) {
-    console.error('YD sync error:', e);
-    setSyncStatus('error', 'Ошибка синхронизации');
-    toast('Ошибка синхронизации: ' + e.message, 'error');
   }
 }
 
@@ -744,10 +733,13 @@ function getExt(file) { return (file.name.split('.').pop() || 'bin').toLowerCase
 
 async function persistDB() {
   saveLocal();
-  if (YD.token) {
-    setSyncStatus('syncing', 'Сохранение...');
-    try { await YD.uploadJSON(); setSyncStatus('ok', 'Сохранено ' + new Date().toLocaleTimeString('ru')); }
-    catch { setSyncStatus('error', 'Ошибка YD'); }
+  setSyncStatus('syncing', 'Сохранение...');
+  try {
+    await FB.upload();
+    setSyncStatus('ok', 'Сохранено ' + new Date().toLocaleTimeString('ru'));
+  } catch(e) {
+    console.error('persistDB Firebase error:', e);
+    setSyncStatus('error', 'Ошибка сохранения: ' + e.message);
   }
 }
 
@@ -773,25 +765,21 @@ async function startApp(user) {
   showLoading('Загрузка данных...');
   await initIDB();
   loadLocal();
-  if (YD.token) {
-    showLoading('Синхронизация с Яндекс Диском...');
-    try {
-      await YD.mkdir(YD.ROOT);
-      await YD.mkdir(YD.ROOT + '/media');
-      const remote = await YD.downloadJSON();
-      if (remote) {
-        DB.people    = dedup(remote.people    || DB.people);
-        DB.locations = dedup(remote.locations || DB.locations);
-        DB.scripts   = dedup(remote.scripts   || DB.scripts);
-        DB.projects  = dedup(remote.projects  || DB.projects);
-        saveLocal();
-      }
-      await YD.uploadJSON();
-      setSyncStatus('ok', 'Синхронизировано ' + new Date().toLocaleTimeString('ru'));
-    } catch(e) {
-      console.error('YD startup sync error:', e);
-      setSyncStatus('error', 'Ошибка: ' + e.message);
+  showLoading('Синхронизация с облаком...');
+  try {
+    const remote = await FB.download();
+    if (remote) {
+      DB.people    = mergeRecords(DB.people,    remote.people);
+      DB.locations = mergeRecords(DB.locations, remote.locations);
+      DB.scripts   = mergeRecords(DB.scripts,   remote.scripts);
+      DB.projects  = mergeRecords(DB.projects,  remote.projects);
+      saveLocal();
     }
+    await FB.upload();
+    setSyncStatus('ok', 'Синхронизировано ' + new Date().toLocaleTimeString('ru'));
+  } catch(e) {
+    console.error('Firebase startup sync error:', e);
+    setSyncStatus('error', 'Нет связи — работаем локально');
   }
   hideLoading();
   document.getElementById('app').classList.add('visible');
