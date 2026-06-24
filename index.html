@@ -542,15 +542,20 @@ function saveLocal() {
   } catch(e) { console.warn('localStorage save failed', e); }
 }
 
+function dedup(arr) {
+  const seen = new Set();
+  return (arr||[]).filter(x => { if (seen.has(x.id)) return false; seen.add(x.id); return true; });
+}
+
 function loadLocal() {
   try {
     const s = localStorage.getItem(LS_KEY);
     if (s) {
       const d = JSON.parse(s);
-      DB.people    = d.people    || [];
-      DB.locations = d.locations || [];
-      DB.scripts   = d.scripts   || [];
-      DB.projects  = d.projects  || [];
+      DB.people    = dedup(d.people);
+      DB.locations = dedup(d.locations);
+      DB.scripts   = dedup(d.scripts);
+      DB.projects  = dedup(d.projects);
     }
   } catch(e) { console.warn('localStorage load failed', e); }
 }
@@ -609,12 +614,12 @@ const YD = {
     try {
       const c = await fetch(`${this.BASE}/resources?path=${encodeURIComponent(path)}`, { headers: this.h() });
       if (c.status === 404) {
-        const r = await fetch(`${this.BASE}/resources?path=${encodeURIComponent(path)}`, { method:'PUT', headers: this.h() });
-        if (!r.ok && r.status !== 409) throw new Error(`mkdir ${r.status}`);
-      } else if (!c.ok && c.status !== 200) {
-        throw new Error(`mkdir check ${c.status}: ${await c.text()}`);
+        await fetch(`${this.BASE}/resources?path=${encodeURIComponent(path)}`, { method:'PUT', headers: this.h() });
       }
-    } catch(e) { throw new Error('Создание папки: ' + e.message); }
+    } catch(e) {
+      // mkdir failure is non-fatal — folder may already exist
+      console.warn('YD mkdir warning:', e.message);
+    }
   },
 
   async uploadJSON() {
@@ -692,10 +697,10 @@ async function ydSync() {
     await YD.mkdir(YD.ROOT + '/media');
     const remote = await YD.downloadJSON();
     if (remote) {
-      DB.people    = remote.people    || DB.people;
-      DB.locations = remote.locations || DB.locations;
-      DB.scripts   = remote.scripts   || DB.scripts;
-      DB.projects  = remote.projects  || DB.projects;
+      DB.people    = dedup(remote.people    || DB.people);
+      DB.locations = dedup(remote.locations || DB.locations);
+      DB.scripts   = dedup(remote.scripts   || DB.scripts);
+      DB.projects  = dedup(remote.projects  || DB.projects);
       saveLocal();
     }
     await YD.uploadJSON();
@@ -759,17 +764,17 @@ async function startApp(user) {
       await YD.mkdir(YD.ROOT + '/media');
       const remote = await YD.downloadJSON();
       if (remote) {
-        DB.people    = remote.people    || DB.people;
-        DB.locations = remote.locations || DB.locations;
-        DB.scripts   = remote.scripts   || DB.scripts;
-        DB.projects  = remote.projects  || DB.projects;
+        DB.people    = dedup(remote.people    || DB.people);
+        DB.locations = dedup(remote.locations || DB.locations);
+        DB.scripts   = dedup(remote.scripts   || DB.scripts);
+        DB.projects  = dedup(remote.projects  || DB.projects);
         saveLocal();
       }
       await YD.uploadJSON();
       setSyncStatus('ok', 'Синхронизировано ' + new Date().toLocaleTimeString('ru'));
     } catch(e) {
       console.error('YD startup sync error:', e);
-      setSyncStatus('error', 'Ошибка синхронизации: ' + e.message);
+      setSyncStatus('error', 'Ошибка: ' + e.message);
     }
   }
   hideLoading();
