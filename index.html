@@ -343,8 +343,9 @@
           </div>
           <div class="form-group"><label>OAuth токен Яндекс Диска</label><input type="password" id="yd-token-input" placeholder="y0_A..."></div>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-            <button class="btn btn-primary" onclick="saveYDToken()">Сохранить токен</button>
-            <button class="btn btn-ghost" onclick="ydSync()">🔄 Синхронизировать сейчас</button>
+            <button class="btn btn-primary" onclick="saveYDToken()">Сохранить и подключить</button>
+            <button class="btn btn-ghost" onclick="checkYDConnection()">Проверить соединение</button>
+            <button class="btn btn-ghost" onclick="ydSync()">🔄 Синхронизировать</button>
             <div id="token-status" style="font-size:13px;color:var(--text2)"></div>
           </div>
         </div>
@@ -599,7 +600,7 @@ function idbDel(id) {
 // =====================================================================
 const YD = {
   BASE: 'https://cloud-api.yandex.net/v1/disk',
-  ROOT: 'disk:/КиноБаза',
+  ROOT: 'disk:/KinoBase',
   get token() { return localStorage.getItem('kb_yd_token') || ''; },
   set token(v) { if (v) localStorage.setItem('kb_yd_token', v); else localStorage.removeItem('kb_yd_token'); },
   h() { return { 'Authorization': 'OAuth ' + this.token }; },
@@ -607,25 +608,45 @@ const YD = {
   async mkdir(path) {
     try {
       const c = await fetch(`${this.BASE}/resources?path=${encodeURIComponent(path)}`, { headers: this.h() });
-      if (c.status === 404) await fetch(`${this.BASE}/resources?path=${encodeURIComponent(path)}`, { method:'PUT', headers: this.h() });
-    } catch {}
+      if (c.status === 404) {
+        const r = await fetch(`${this.BASE}/resources?path=${encodeURIComponent(path)}`, { method:'PUT', headers: this.h() });
+        if (!r.ok && r.status !== 409) throw new Error(`mkdir ${r.status}`);
+      } else if (!c.ok && c.status !== 200) {
+        throw new Error(`mkdir check ${c.status}: ${await c.text()}`);
+      }
+    } catch(e) { throw new Error('Создание папки: ' + e.message); }
   },
 
   async uploadJSON() {
-    const blob = new Blob([JSON.stringify({ people:DB.people,locations:DB.locations,scripts:DB.scripts,projects:DB.projects })], { type:'application/json' });
+    const data = JSON.stringify({ people:DB.people,locations:DB.locations,scripts:DB.scripts,projects:DB.projects });
+    const blob = new Blob([data], { type:'application/json' });
     const r1 = await fetch(`${this.BASE}/resources/upload?path=${encodeURIComponent(this.ROOT+'/db.json')}&overwrite=true`, { headers: this.h() });
-    if (!r1.ok) throw new Error('YD upload URL error');
+    if (!r1.ok) {
+      const txt = await r1.text();
+      throw new Error(`Получение URL загрузки (${r1.status}): ${txt}`);
+    }
     const { href } = await r1.json();
-    await fetch(href, { method:'PUT', body:blob });
+    const r2 = await fetch(href, { method:'PUT', body:blob, headers:{ 'Content-Type':'application/json' } });
+    if (!r2.ok) throw new Error(`Загрузка JSON (${r2.status})`);
   },
 
   async downloadJSON() {
     const r1 = await fetch(`${this.BASE}/resources/download?path=${encodeURIComponent(this.ROOT+'/db.json')}`, { headers: this.h() });
     if (r1.status === 404) return null;
-    if (!r1.ok) throw new Error('YD download error');
+    if (!r1.ok) {
+      const txt = await r1.text();
+      throw new Error(`Получение URL скачивания (${r1.status}): ${txt}`);
+    }
     const { href } = await r1.json();
     const r2 = await fetch(href);
+    if (!r2.ok) throw new Error(`Скачивание JSON (${r2.status})`);
     return await r2.json();
+  },
+
+  async checkConnection() {
+    const r = await fetch(`${this.BASE}/`, { headers: this.h() });
+    if (!r.ok) throw new Error(`API ${r.status}: ${await r.text()}`);
+    return await r.json();
   },
 
   async uploadFile(id, ext, file) {
@@ -650,6 +671,19 @@ const YD = {
   }
 };
 
+async function checkYDConnection() {
+  if (!YD.token) { toast('Нет токена', 'error'); return; }
+  const el = document.getElementById('token-status');
+  el.textContent = '⏳ Проверяем...'; el.style.color = 'var(--text2)';
+  try {
+    const info = await YD.checkConnection();
+    const gb = (info.total_space / 1073741824).toFixed(1);
+    el.textContent = `✅ Подключено (${gb} ГБ)`; el.style.color = 'var(--success)';
+  } catch(e) {
+    el.textContent = '❌ Ошибка: ' + e.message; el.style.color = 'var(--danger)';
+  }
+}
+
 async function ydSync() {
   if (!YD.token) { toast('Токен Яндекс Диска не задан — настройте в Настройках', 'info'); return; }
   setSyncStatus('syncing', 'Синхронизация...');
@@ -658,7 +692,6 @@ async function ydSync() {
     await YD.mkdir(YD.ROOT + '/media');
     const remote = await YD.downloadJSON();
     if (remote) {
-      // Merge: remote wins for records, but keep local blobs
       DB.people    = remote.people    || DB.people;
       DB.locations = remote.locations || DB.locations;
       DB.scripts   = remote.scripts   || DB.scripts;
@@ -667,12 +700,12 @@ async function ydSync() {
     }
     await YD.uploadJSON();
     setSyncStatus('ok', 'Синхронизировано ' + new Date().toLocaleTimeString('ru'));
-    toast('Синхронизировано с Яндекс Диском', 'success');
     updateBadges();
     loadCurrentPage();
   } catch(e) {
+    console.error('YD sync error:', e);
     setSyncStatus('error', 'Ошибка синхронизации');
-    toast('Ошибка: ' + e.message, 'error');
+    toast('Ошибка синхронизации: ' + e.message, 'error');
   }
 }
 
@@ -719,12 +752,30 @@ async function startApp(user) {
   showLoading('Загрузка данных...');
   await initIDB();
   loadLocal();
+  if (YD.token) {
+    showLoading('Синхронизация с Яндекс Диском...');
+    try {
+      await YD.mkdir(YD.ROOT);
+      await YD.mkdir(YD.ROOT + '/media');
+      const remote = await YD.downloadJSON();
+      if (remote) {
+        DB.people    = remote.people    || DB.people;
+        DB.locations = remote.locations || DB.locations;
+        DB.scripts   = remote.scripts   || DB.scripts;
+        DB.projects  = remote.projects  || DB.projects;
+        saveLocal();
+      }
+      await YD.uploadJSON();
+      setSyncStatus('ok', 'Синхронизировано ' + new Date().toLocaleTimeString('ru'));
+    } catch(e) {
+      console.error('YD startup sync error:', e);
+      setSyncStatus('error', 'Ошибка синхронизации: ' + e.message);
+    }
+  }
   hideLoading();
   document.getElementById('app').classList.add('visible');
   updateBadges();
   showPage('dashboard');
-  // Фоновая синхронизация с ЯД если токен есть
-  if (YD.token) setTimeout(ydSync, 1000);
 }
 
 function doLogout() {
@@ -745,15 +796,18 @@ function savePasswords() {
   toast('Пароли сохранены', 'success');
 }
 
-function saveYDToken() {
+async function saveYDToken() {
   const t = document.getElementById('yd-token-input').value.trim();
   if (!t) { toast('Введите токен', 'error'); return; }
   YD.token = t;
   document.getElementById('yd-token-input').value = '';
-  document.getElementById('token-status').textContent = '✅ Токен сохранён';
-  document.getElementById('token-status').style.color = 'var(--success)';
-  toast('Токен сохранён! Синхронизируем...', 'success');
-  ydSync();
+  document.getElementById('yd-token-input').placeholder = 'Токен уже сохранён (введите новый для замены)';
+  toast('Токен сохранён! Проверяем соединение...', 'success');
+  await checkYDConnection();
+  const st = document.getElementById('token-status');
+  if (st.textContent.startsWith('✅')) {
+    ydSync();
+  }
 }
 
 document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
