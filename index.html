@@ -623,10 +623,15 @@ const FB = {
   URL: 'https://kinobase-2ed51-default-rtdb.firebaseio.com',
 
   async upload() {
+    const payload = {
+      people: DB.people, locations: DB.locations,
+      scripts: DB.scripts, projects: DB.projects,
+      config: { ydToken: YD.token || null }
+    };
     const r = await fetch(`${this.URL}/db.json`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ people:DB.people, locations:DB.locations, scripts:DB.scripts, projects:DB.projects })
+      body: JSON.stringify(payload)
     });
     if (!r.ok) throw new Error(`Firebase запись (${r.status})`);
   },
@@ -647,6 +652,9 @@ async function fbSync() {
       DB.locations = mergeRecords(DB.locations, remote.locations);
       DB.scripts   = mergeRecords(DB.scripts,   remote.scripts);
       DB.projects  = mergeRecords(DB.projects,  remote.projects);
+      if (remote.config && remote.config.ydToken && !YD.token) {
+        YD.token = remote.config.ydToken;
+      }
       saveLocal();
     }
     await FB.upload();
@@ -773,6 +781,10 @@ async function startApp(user) {
       DB.locations = mergeRecords(DB.locations, remote.locations);
       DB.scripts   = mergeRecords(DB.scripts,   remote.scripts);
       DB.projects  = mergeRecords(DB.projects,  remote.projects);
+      // Подтягиваем токен ЯД с Firebase (чтобы не вводить на каждом устройстве)
+      if (remote.config && remote.config.ydToken && !YD.token) {
+        YD.token = remote.config.ydToken;
+      }
       saveLocal();
     }
     await FB.upload();
