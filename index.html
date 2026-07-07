@@ -1401,14 +1401,14 @@ function lightbox(url,type) {
     wrap.onclick=e=>e.stopPropagation();
 
     const v=document.createElement('video');
-    v.src=url; v.controls=true; v.autoplay=true; v.playsInline=true;
+    v.src=url; v.controls=true; v.autoplay=true; v.playsInline=true; v.muted=true;
     v.style.cssText='max-width:94vw;max-height:80vh;border-radius:6px;display:block;background:#000;min-width:320px;min-height:180px';
     v.onclick=e=>e.stopPropagation();
 
     // Если браузер не может воспроизвести (HEVC/MOV) — показываем подсказку
     const errMsg=document.createElement('div');
     errMsg.style.cssText='display:none;color:#fff;font-size:13px;text-align:center;padding:8px;background:rgba(255,100,100,0.3);border-radius:6px;max-width:360px';
-    errMsg.innerHTML='⚠️ Браузер не поддерживает этот формат видео (HEVC/MOV).<br>Нажмите «Скачать» и откройте в плеере.';
+    errMsg.innerHTML='⚠️ Chrome не поддерживает HEVC/MOV.<br>Откройте сайт в <strong>Safari</strong> — там видео играет. Или нажмите «Скачать».';
     v.onerror=()=>{ errMsg.style.display='block'; };
 
     // Кнопка скачать
