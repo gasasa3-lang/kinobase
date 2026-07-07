@@ -345,7 +345,6 @@
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
             <button class="btn btn-primary" onclick="saveYDToken()">Сохранить и подключить</button>
             <button class="btn btn-ghost" onclick="checkYDConnection()">Проверить соединение</button>
-            <button class="btn btn-ghost" onclick="ydSync()">🔄 Синхронизировать</button>
             <div id="token-status" style="font-size:13px;color:var(--text2)"></div>
           </div>
         </div>
@@ -825,10 +824,8 @@ async function saveYDToken() {
   document.getElementById('yd-token-input').placeholder = 'Токен уже сохранён (введите новый для замены)';
   toast('Токен сохранён! Проверяем соединение...', 'success');
   await checkYDConnection();
-  const st = document.getElementById('token-status');
-  if (st.textContent.startsWith('✅')) {
-    ydSync();
-  }
+  // Синхронизируем токен в Firebase чтобы все устройства получили его
+  await fbSync();
 }
 
 document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
@@ -908,13 +905,39 @@ function loadCurrentPage() {
 // =====================================================================
 // МЕДИАФАЙЛЫ
 // =====================================================================
+
+// Сжимаем изображение и возвращаем base64 (для хранения в Firebase)
+function compressImage(file, maxWidth = 1400, quality = 0.82) {
+  return new Promise((resolve) => {
+    if (!file.type.startsWith('image/')) { resolve(null); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => resolve(null);
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(file);
+  });
+}
+
 async function handleFiles(files, ctx) {
   for (const f of files) {
     const id = uid();
     const ext = getExt(f);
     // Сохраняем blob в IndexedDB сразу
     await idbPut(id, f, f.name, f.type);
-    const ref = { id, ext, name: f.name, type: f.type };
+    // Сжимаем фото и сохраняем base64 для синхронизации через Firebase
+    const data = await compressImage(f);
+    const ref = { id, ext, name: f.name, type: f.type, ...(data ? { data } : {}) };
     pending[ctx].push(ref);
     renderThumb(id, URL.createObjectURL(f), f.type, ctx, false, ext);
   }
@@ -967,10 +990,12 @@ function clearCtx(ctx) {
 }
 
 async function getMediaUrl(ref) {
-  // Сначала пробуем IndexedDB
+  // 1. IndexedDB (своё устройство — оригинальное качество)
   const rec = await idbGet(ref.id);
   if (rec && rec.blob) return { url: URL.createObjectURL(rec.blob), type: rec.type, name: rec.name };
-  // Потом YD
+  // 2. Base64 данные из Firebase (другое устройство)
+  if (ref.data) return { url: ref.data, type: 'image/jpeg', name: ref.name };
+  // 3. Яндекс Диск (видео и старые файлы без base64)
   if (YD.token) {
     const url = await YD.getFileUrl(ref.id, ref.ext);
     if (url) return { url, type: ref.type, name: ref.name };
@@ -1019,7 +1044,7 @@ async function savePerson() {
     email: document.getElementById('person-email').value.trim(),
     tags: document.getElementById('person-tags').value.split(',').map(t=>t.trim()).filter(Boolean),
     notes: document.getElementById('person-notes').value.trim(),
-    media, createdAt: Date.now()
+    media, createdAt: Date.now(), updatedAt: Date.now()
   };
   const idx = DB.people.findIndex(x=>x.id===id);
   if (idx>=0) DB.people[idx]=obj; else DB.people.unshift(obj);
@@ -1204,7 +1229,7 @@ async function openScriptDetail(id) {
   let fh='';
   if (s.media?.length) {
     fh='<div class="detail-label" style="margin-top:20px">Вложения</div><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">';
-    for (const ref of s.media) { const m=await getMediaUrl(ref); if (m) { if (m.type.startsWith('image/')) fh+=`<div class="detail-media-item" onclick="lightbox('${m.url}','image')" style="max-width:220px"><img src="${m.url}"></div>`; else fh+=`<a href="${m.url}" download="${ref.name}" class="btn btn-ghost btn-sm" style="width:fit-content">📄 ${ref.name}</a>`; } }
+    for (const ref of s.media) { _mediaRefs[ref.id]=ref; const m=await getMediaUrl(ref); if (m) { if (m.type.startsWith('image/')) fh+=`<div class="detail-media-item" onclick="lightboxRef('${ref.id}','image')" style="max-width:220px"><img src="${m.url}"></div>`; else fh+=`<a href="${m.url}" download="${ref.name}" class="btn btn-ghost btn-sm" style="width:fit-content">📄 ${ref.name}</a>`; } }
     fh+='</div>';
   }
   document.getElementById('detail-body').innerHTML=`<div class="form-row"><div>${s.version?`<div class="detail-label">Версия</div><div class="detail-value">${s.version}</div>`:''} ${s.date?`<div class="detail-label">Дата</div><div class="detail-value">${new Date(s.date+'T00:00').toLocaleDateString('ru')}</div>`:''} ${s.project?`<div class="detail-label">Проект</div><div class="detail-value">${s.project}</div>`:''}</div><div>${s.notes?`<div class="detail-label">Заметки</div><div class="detail-value" style="white-space:pre-wrap">${s.notes}</div>`:''}</div></div>${s.content?`<div class="detail-label" style="margin-top:16px">Содержание</div><div style="background:var(--bg3);padding:16px;border-radius:var(--r);white-space:pre-wrap;font-size:14px;margin-top:8px;max-height:300px;overflow-y:auto;line-height:1.6">${s.content}</div>`:''}${fh}`;
@@ -1306,17 +1331,34 @@ function loadDashboard() {
 // =====================================================================
 // HELPERS
 // =====================================================================
+// Хранилище ref-ов для медиагрида (чтобы получать свежий URL при клике)
+const _mediaRefs = {};
+
 async function buildMediaGrid(refs) {
   if (!refs?.length) return '';
   let html='<div class="detail-label" style="margin-top:20px">Медиа</div><div class="detail-media-grid">';
   for (const ref of refs) {
+    _mediaRefs[ref.id] = ref;
     const m=await getMediaUrl(ref);
     if (m) {
-      if (m.type.startsWith('image/')) html+=`<div class="detail-media-item" onclick="lightbox('${m.url}','image')"><img src="${m.url}" loading="lazy"></div>`;
-      else if (m.type.startsWith('video/')) html+=`<div class="detail-media-item" onclick="lightbox('${m.url}','video')"><video src="${m.url}" muted></video></div>`;
+      if (m.type.startsWith('image/')) {
+        html+=`<div class="detail-media-item" onclick="lightboxRef('${ref.id}','image')"><img src="${m.url}" loading="lazy"></div>`;
+      } else if (m.type.startsWith('video/')) {
+        // Для видео показываем иконку, при клике получаем свежий URL (YD-ссылки истекают)
+        html+=`<div class="detail-media-item" onclick="lightboxRef('${ref.id}','video')" style="display:flex;align-items:center;justify-content:center;background:var(--bg3);cursor:pointer">
+          <div style="text-align:center"><div style="font-size:36px">▶️</div><div style="font-size:11px;color:var(--text2);margin-top:4px">${ref.name||'Видео'}</div></div></div>`;
+      }
     }
   }
   return html+'</div>';
+}
+
+async function lightboxRef(refId, type) {
+  const ref = _mediaRefs[refId];
+  if (!ref) return;
+  const m = await getMediaUrl(ref);
+  if (!m) { toast('Не удалось загрузить файл', 'error'); return; }
+  lightbox(m.url, type);
 }
 
 function lightbox(url,type) {
