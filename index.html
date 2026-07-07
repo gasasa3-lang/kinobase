@@ -1359,14 +1359,15 @@ async function buildMediaGrid(refs) {
   let html='<div class="detail-label" style="margin-top:20px">Медиа</div><div class="detail-media-grid">';
   for (const ref of refs) {
     _mediaRefs[ref.id] = ref;
-    const m=await getMediaUrl(ref);
-    if (m) {
-      if (m.type.startsWith('image/')) {
+    const isVideo = ref.type?.startsWith('video/');
+    if (isVideo) {
+      // Видео всегда показываем плейсхолдер — URL получаем свежим при клике
+      html+=`<div class="detail-media-item" onclick="lightboxRef('${ref.id}','video')" style="display:flex;align-items:center;justify-content:center;background:var(--bg3);cursor:pointer;border:1px solid var(--border)">
+        <div style="text-align:center;padding:12px"><div style="font-size:36px">▶️</div><div style="font-size:10px;color:var(--text2);margin-top:6px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ref.name||'Видео'}</div></div></div>`;
+    } else {
+      const m = await getMediaUrl(ref);
+      if (m && m.type.startsWith('image/')) {
         html+=`<div class="detail-media-item" onclick="lightboxRef('${ref.id}','image')"><img src="${m.url}" loading="lazy"></div>`;
-      } else if (m.type.startsWith('video/')) {
-        // Для видео показываем иконку, при клике получаем свежий URL (YD-ссылки истекают)
-        html+=`<div class="detail-media-item" onclick="lightboxRef('${ref.id}','video')" style="display:flex;align-items:center;justify-content:center;background:var(--bg3);cursor:pointer">
-          <div style="text-align:center"><div style="font-size:36px">▶️</div><div style="font-size:11px;color:var(--text2);margin-top:4px">${ref.name||'Видео'}</div></div></div>`;
       }
     }
   }
@@ -1384,9 +1385,28 @@ async function lightboxRef(refId, type) {
 function lightbox(url,type) {
   const o=document.createElement('div');
   o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:2000;display:flex;align-items:center;justify-content:center;cursor:zoom-out';
-  o.onclick=()=>o.remove();
-  if (type==='image') { const img=document.createElement('img'); img.src=url; img.style.cssText='max-width:94vw;max-height:94vh;border-radius:6px'; o.appendChild(img); }
-  else { const v=document.createElement('video'); v.src=url; v.controls=true; v.autoplay=true; v.style.cssText='max-width:94vw;max-height:94vh;border-radius:6px'; v.onclick=e=>e.stopPropagation(); o.appendChild(v); }
+  if (type==='image') {
+    const img=document.createElement('img');
+    img.src=url; img.style.cssText='max-width:94vw;max-height:94vh;border-radius:6px;cursor:default';
+    img.onclick=e=>e.stopPropagation();
+    o.appendChild(img);
+    o.onclick=()=>o.remove();
+  } else {
+    // Видео — закрыть только по крестику или клику вне видео
+    const wrap=document.createElement('div');
+    wrap.style.cssText='position:relative;max-width:94vw;max-height:94vh';
+    const v=document.createElement('video');
+    v.src=url; v.controls=true; v.autoplay=true; v.playsInline=true;
+    v.style.cssText='max-width:94vw;max-height:90vh;border-radius:6px;display:block';
+    v.onclick=e=>e.stopPropagation();
+    const closeBtn=document.createElement('button');
+    closeBtn.textContent='×'; closeBtn.style.cssText='position:absolute;top:-14px;right:-14px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);border:none;color:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1';
+    closeBtn.onclick=()=>o.remove();
+    wrap.appendChild(v); wrap.appendChild(closeBtn);
+    wrap.onclick=e=>e.stopPropagation();
+    o.appendChild(wrap);
+    o.onclick=()=>o.remove();
+  }
   document.body.appendChild(o);
 }
 
