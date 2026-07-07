@@ -974,21 +974,25 @@ function rmPending(id, ctx) { pending[ctx]=pending[ctx].filter(m=>m.id!==id); id
 function rmExisting(id, ctx) { existingMedia[ctx]=existingMedia[ctx].filter(x=>x.id!==id); idbDel(id); document.getElementById('th-'+id)?.remove(); }
 
 async function commitMedia(ctx) {
-  // Файлы уже в IndexedDB, опционально заливаем на YD
   const newRefs = [...pending[ctx]];
+  const allRefs = [...existingMedia[ctx], ...newRefs];
+  // Видео загружаем на YD в фоне (не блокируем сохранение)
   if (YD.token && newRefs.length) {
-    showUploadProgress('Загрузка на Яндекс Диск...', 0, newRefs.length);
-    for (let i=0; i<newRefs.length; i++) {
-      const ref = newRefs[i];
-      showUploadProgress('Загружаем: '+ref.name, i, newRefs.length);
-      const rec = await idbGet(ref.id);
-      if (rec) await YD.uploadFile(ref.id, ref.ext, rec.blob).catch(()=>{});
+    const videoRefs = newRefs.filter(r => r.type?.startsWith('video/'));
+    if (videoRefs.length) {
+      toast(`Видео (${videoRefs.length} шт.) загружается на Яндекс Диск в фоне...`, 'info');
+      (async () => {
+        for (const ref of videoRefs) {
+          const rec = await idbGet(ref.id);
+          if (rec) await YD.uploadFile(ref.id, ref.ext, rec.blob).catch(()=>{});
+        }
+        // Обновляем Firebase после фоновой загрузки
+        await FB.upload().catch(()=>{});
+        toast('✅ Видео загружено на Яндекс Диск', 'success');
+      })();
     }
-    showUploadProgress('Готово', newRefs.length, newRefs.length);
-    await new Promise(r=>setTimeout(r,400));
-    hideUploadProgress();
   }
-  return [...existingMedia[ctx], ...newRefs];
+  return allRefs;
 }
 
 function clearCtx(ctx) {
@@ -1392,18 +1396,36 @@ function lightbox(url,type) {
     o.appendChild(img);
     o.onclick=()=>o.remove();
   } else {
-    // Видео — закрыть только по крестику или клику вне видео
     const wrap=document.createElement('div');
-    wrap.style.cssText='position:relative;max-width:94vw;max-height:94vh';
+    wrap.style.cssText='position:relative;display:flex;flex-direction:column;align-items:center;gap:12px;max-width:94vw';
+    wrap.onclick=e=>e.stopPropagation();
+
     const v=document.createElement('video');
     v.src=url; v.controls=true; v.autoplay=true; v.playsInline=true;
-    v.style.cssText='max-width:94vw;max-height:90vh;border-radius:6px;display:block';
+    v.style.cssText='max-width:94vw;max-height:80vh;border-radius:6px;display:block;background:#000;min-width:320px;min-height:180px';
     v.onclick=e=>e.stopPropagation();
+
+    // Если браузер не может воспроизвести (HEVC/MOV) — показываем подсказку
+    const errMsg=document.createElement('div');
+    errMsg.style.cssText='display:none;color:#fff;font-size:13px;text-align:center;padding:8px;background:rgba(255,100,100,0.3);border-radius:6px;max-width:360px';
+    errMsg.innerHTML='⚠️ Браузер не поддерживает этот формат видео (HEVC/MOV).<br>Нажмите «Скачать» и откройте в плеере.';
+    v.onerror=()=>{ errMsg.style.display='block'; };
+
+    // Кнопка скачать
+    const dlBtn=document.createElement('a');
+    dlBtn.href=url; dlBtn.download=name||'video'; dlBtn.textContent='⬇️ Скачать видео';
+    dlBtn.style.cssText='color:white;background:rgba(255,255,255,0.2);padding:8px 18px;border-radius:6px;text-decoration:none;font-size:14px;border:1px solid rgba(255,255,255,0.3)';
+    dlBtn.onclick=e=>e.stopPropagation();
+
     const closeBtn=document.createElement('button');
-    closeBtn.textContent='×'; closeBtn.style.cssText='position:absolute;top:-14px;right:-14px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);border:none;color:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1';
+    closeBtn.textContent='× Закрыть'; closeBtn.style.cssText='background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:14px';
     closeBtn.onclick=()=>o.remove();
-    wrap.appendChild(v); wrap.appendChild(closeBtn);
-    wrap.onclick=e=>e.stopPropagation();
+
+    const btns=document.createElement('div');
+    btns.style.cssText='display:flex;gap:10px;align-items:center';
+    btns.appendChild(dlBtn); btns.appendChild(closeBtn);
+
+    wrap.appendChild(v); wrap.appendChild(errMsg); wrap.appendChild(btns);
     o.appendChild(wrap);
     o.onclick=()=>o.remove();
   }
