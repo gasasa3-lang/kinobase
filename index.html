@@ -694,10 +694,12 @@ const YD = {
       await this.mkdir(this.ROOT); await this.mkdir(this.ROOT + '/media');
       const path = `${this.ROOT}/media/${id}.${ext}`;
       const r1 = await fetch(`${this.BASE}/resources/upload?path=${encodeURIComponent(path)}&overwrite=true`, { headers: this.h() });
-      if (!r1.ok) return;
+      if (!r1.ok) { console.warn('YD upload link failed:', r1.status); return false; }
       const { href } = await r1.json();
-      await fetch(href, { method:'PUT', body:file });
-    } catch(e) { console.warn('YD uploadFile:', e.message); }
+      const r2 = await fetch(href, { method:'PUT', body:file });
+      if (!r2.ok) { console.warn('YD upload PUT failed:', r2.status); return false; }
+      return true;
+    } catch(e) { console.warn('YD uploadFile:', e.message); return false; }
   },
 
   async getFileUrl(id, ext) {
@@ -1045,15 +1047,21 @@ async function commitMedia(ctx) {
   if (YD.token && newRefs.length) {
     const videoRefs = newRefs.filter(r => r.type?.startsWith('video/'));
     if (videoRefs.length) {
-      toast(`Видео (${videoRefs.length} шт.) загружается на Яндекс Диск в фоне...`, 'info');
+      toast(`Видео загружается на Яндекс Диск... не закрывайте страницу`, 'info');
       (async () => {
+        let ok = 0;
         for (const ref of videoRefs) {
           const rec = await idbGet(ref.id);
-          if (rec) await YD.uploadFile(ref.id, ref.ext, rec.blob).catch(()=>{});
+          if (!rec) continue;
+          const uploaded = await YD.uploadFile(ref.id, ref.ext, rec.blob);
+          if (uploaded) { ref.ydReady = true; ok++; }
         }
-        // Обновляем Firebase после фоновой загрузки
-        await FB.upload().catch(()=>{});
-        toast('✅ Видео загружено на Яндекс Диск', 'success');
+        if (ok > 0) {
+          await FB.upload().catch(()=>{});
+          toast(`✅ Видео (${ok} шт.) загружено — теперь доступно на всех устройствах`, 'success');
+        } else {
+          toast('⚠️ Не удалось загрузить видео на Яндекс Диск. Проверьте токен в Настройках.', 'error');
+        }
       })();
     }
   }
@@ -1467,12 +1475,13 @@ async function buildMediaGrid(refs) {
     _mediaRefs[ref.id] = ref;
     const isVideo = ref.type?.startsWith('video/');
     if (isVideo) {
+      const ydBadge = ref.ydReady ? `<div style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.65);border-radius:4px;font-size:10px;padding:2px 5px;color:#4ebc7a">☁️ ЯД</div>` : `<div style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.65);border-radius:4px;font-size:10px;padding:2px 5px;color:#e0a020">📱 локально</div>`;
       if (ref.thumb) {
         html+=`<div class="detail-media-item" id="vg-${ref.id}" onclick="lightboxRef('${ref.id}','video')" style="background:url('${ref.thumb}') center/cover no-repeat;cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;">
-          <div style="background:rgba(0,0,0,0.45);border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:24px">▶️</div></div>`;
+          <div style="background:rgba(0,0,0,0.45);border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:24px">▶️</div>${ydBadge}</div>`;
       } else {
         html+=`<div class="detail-media-item" id="vg-${ref.id}" onclick="lightboxRef('${ref.id}','video')" style="background:var(--bg3);cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;">
-          <div style="background:rgba(0,0,0,0.45);border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:24px">▶️</div></div>`;
+          <div style="background:rgba(0,0,0,0.45);border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:24px">▶️</div>${ydBadge}</div>`;
         needThumb.push(ref);
       }
     } else {
@@ -1507,8 +1516,22 @@ async function buildMediaGrid(refs) {
 async function lightboxRef(refId, type) {
   const ref = _mediaRefs[refId];
   if (!ref) return;
+  const isVideo = ref.type?.startsWith('video/');
   const m = await getMediaUrl(ref);
-  if (!m) { toast('Не удалось загрузить файл', 'error'); return; }
+  if (!m) {
+    if (isVideo) {
+      if (!YD.token) {
+        toast('Видео доступно только на устройстве где загружалось. Добавьте токен Яндекс Диска в Настройках для доступа с других устройств.', 'error');
+      } else if (!ref.ydReady) {
+        toast('Видео ещё не загружено на Яндекс Диск. Откройте запись на устройстве где загружали видео.', 'error');
+      } else {
+        toast('Не удалось получить видео с Яндекс Диска. Проверьте токен в Настройках.', 'error');
+      }
+    } else {
+      toast('Не удалось загрузить файл', 'error');
+    }
+    return;
+  }
   lightbox(m.url, type);
 }
 
