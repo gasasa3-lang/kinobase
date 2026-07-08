@@ -913,6 +913,30 @@ function loadCurrentPage() {
 // МЕДИАФАЙЛЫ
 // =====================================================================
 
+// Генерируем превью-кадр из видео (для отображения на всех устройствах)
+function generateVideoThumbnail(file) {
+  return new Promise((resolve) => {
+    if (!file.type.startsWith('video/')) { resolve(null); return; }
+    const url = URL.createObjectURL(file);
+    const v = document.createElement('video');
+    v.muted = true; v.playsInline = true;
+    v.onloadeddata = () => { v.currentTime = Math.min(1, (v.duration || 5) * 0.1); };
+    v.onseeked = () => {
+      try {
+        const w = Math.min(v.videoWidth || 400, 400);
+        const h = v.videoWidth ? Math.round(w * v.videoHeight / v.videoWidth) : 225;
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(v, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      } catch(e) { URL.revokeObjectURL(url); resolve(null); }
+    };
+    v.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+    v.src = url; v.load();
+  });
+}
+
 // Сжимаем изображение и возвращаем base64 (для хранения в Firebase)
 function compressImage(file, maxWidth = 800, quality = 0.75) {
   return new Promise((resolve) => {
@@ -940,13 +964,18 @@ async function handleFiles(files, ctx) {
   for (const f of files) {
     const id = uid();
     const ext = getExt(f);
-    // Сохраняем blob в IndexedDB сразу
     await idbPut(id, f, f.name, f.type);
-    // Сжимаем фото и сохраняем base64 для синхронизации через Firebase
-    const data = await compressImage(f);
-    const ref = { id, ext, name: f.name, type: f.type, ...(data ? { data } : {}) };
+    let ref;
+    if (f.type.startsWith('video/')) {
+      const thumb = await generateVideoThumbnail(f);
+      ref = { id, ext, name: f.name, type: f.type, ...(thumb ? { thumb } : {}) };
+      renderThumb(id, URL.createObjectURL(f), f.type, ctx, false, ext, thumb);
+    } else {
+      const data = await compressImage(f);
+      ref = { id, ext, name: f.name, type: f.type, ...(data ? { data } : {}) };
+      renderThumb(id, URL.createObjectURL(f), f.type, ctx, false, ext, null);
+    }
     pending[ctx].push(ref);
-    renderThumb(id, URL.createObjectURL(f), f.type, ctx, false, ext);
   }
 }
 
@@ -955,7 +984,7 @@ async function handleDrop(e, ctx) {
   await handleFiles(e.dataTransfer.files, ctx);
 }
 
-function renderThumb(id, url, type, ctx, isExisting, fileExt) {
+function renderThumb(id, url, type, ctx, isExisting, fileExt, thumbData) {
   const c = document.getElementById(ctx+'-media-previews');
   const d = document.createElement('div');
   d.className = 'media-thumb'; d.id = 'th-'+id;
@@ -963,7 +992,11 @@ function renderThumb(id, url, type, ctx, isExisting, fileExt) {
   if (type.startsWith('image/')) {
     d.innerHTML = `<img src="${url}"><button class="remove-media" onclick="${rmFn}">×</button><span class="media-type">IMG</span>`;
   } else if (type.startsWith('video/')) {
-    d.innerHTML = `<video src="${url}" muted></video><button class="remove-media" onclick="${rmFn}">×</button><span class="media-type">VID</span>`;
+    if (thumbData) {
+      d.innerHTML = `<img src="${thumbData}" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);font-size:20px">▶️</div><button class="remove-media" onclick="${rmFn}">×</button><span class="media-type">VID</span>`;
+    } else {
+      d.innerHTML = `<video src="${url||''}" muted style="width:100%;height:100%;object-fit:cover"></video><button class="remove-media" onclick="${rmFn}">×</button><span class="media-type">VID</span>`;
+    }
   } else {
     d.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:24px;flex-direction:column;gap:3px"><div>📄</div><div style="font-size:9px;color:var(--text2)">${(fileExt||'').toUpperCase()}</div></div><button class="remove-media" onclick="${rmFn}">×</button><span class="media-type">FILE</span>`;
   }
@@ -1038,8 +1071,9 @@ async function openEditPerson(id) {
   document.getElementById('person-notes').value = p.notes||'';
   existingMedia.person = [...(p.media||[])];
   for (const ref of existingMedia.person) {
+    if (ref.type?.startsWith('video/') && ref.thumb) { renderThumb(ref.id, null, ref.type, 'person', true, ref.ext, ref.thumb); continue; }
     const m = await getMediaUrl(ref);
-    if (m) renderThumb(ref.id, m.url, m.type, 'person', true, ref.ext);
+    if (m) renderThumb(ref.id, m.url, m.type, 'person', true, ref.ext, ref.thumb);
   }
   closeDetail(); openModal('modal-person');
 }
@@ -1081,13 +1115,18 @@ async function renderPeopleGrid(list) {
     card.className='card'; card.onclick=()=>openPersonDetail(p.id);
     let mh=`<div class="no-media">👤</div>`;
     if (p.media?.length) {
-      const m = await getMediaUrl(p.media[0]);
-      if (m) {
-        mh = m.type.startsWith('image/') ? `<img src="${m.url}" loading="lazy">` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:40px">▶️</div>`;
-        if (p.media.length>1) mh+=`<div class="media-count">+${p.media.length-1}</div>`;
-      } else if (p.media[0].type?.startsWith('video/')) {
-        mh = `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:40px">🎬</div>`;
+      const firstRef = p.media[0];
+      if (firstRef.type?.startsWith('video/')) {
+        if (firstRef.thumb) {
+          mh = `<img src="${firstRef.thumb}" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25)"><div style="font-size:32px">▶️</div></div>`;
+        } else {
+          mh = `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:40px">🎬</div>`;
+        }
+      } else {
+        const m = await getMediaUrl(firstRef);
+        if (m) mh = `<img src="${m.url}" loading="lazy">`;
       }
+      if (p.media.length>1) mh+=`<div class="media-count">+${p.media.length-1}</div>`;
     }
     const tags=(p.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('');
     card.innerHTML=`<div class="card-media">${mh}</div><div class="card-body"><div class="card-title">${p.name}</div><div class="card-subtitle">${p.profession}</div>${p.phone?`<div style="font-size:12px;color:var(--text2);margin-top:4px">📞 ${p.phone}</div>`:''}${tags?`<div class="card-tags">${tags}</div>`:''}</div>`;
@@ -1133,7 +1172,7 @@ async function openEditLocation(id) {
   document.getElementById('location-tags').value=(loc.tags||[]).join(', ');
   document.getElementById('location-notes').value=loc.notes||'';
   existingMedia.location=[...(loc.media||[])];
-  for (const ref of existingMedia.location) { const m=await getMediaUrl(ref); if (m) renderThumb(ref.id,m.url,m.type,'location',true,ref.ext); }
+  for (const ref of existingMedia.location) { if (ref.type?.startsWith('video/')&&ref.thumb){renderThumb(ref.id,null,ref.type,'location',true,ref.ext,ref.thumb);continue;} const m=await getMediaUrl(ref); if (m) renderThumb(ref.id,m.url,m.type,'location',true,ref.ext,ref.thumb); }
   closeDetail(); openModal('modal-location');
 }
 
@@ -1164,13 +1203,18 @@ async function renderLocGrid(list) {
     const card=document.createElement('div'); card.className='card'; card.onclick=()=>openLocDetail(loc.id);
     let mh=`<div class="no-media">🏛</div>`;
     if (loc.media?.length) {
-      const m=await getMediaUrl(loc.media[0]);
-      if (m) {
-        mh = m.type.startsWith('image/') ? `<img src="${m.url}" loading="lazy">` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:40px">▶️</div>`;
-        if (loc.media.length>1) mh+=`<div class="media-count">+${loc.media.length-1}</div>`;
-      } else if (loc.media[0].type?.startsWith('video/')) {
-        mh = `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:40px">🎬</div>`;
+      const firstRef = loc.media[0];
+      if (firstRef.type?.startsWith('video/')) {
+        if (firstRef.thumb) {
+          mh = `<img src="${firstRef.thumb}" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25)"><div style="font-size:32px">▶️</div></div>`;
+        } else {
+          mh = `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:40px">🎬</div>`;
+        }
+      } else {
+        const m = await getMediaUrl(firstRef);
+        if (m) mh = `<img src="${m.url}" loading="lazy">`;
       }
+      if (loc.media.length>1) mh+=`<div class="media-count">+${loc.media.length-1}</div>`;
     }
     const tags=(loc.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('');
     card.innerHTML=`<div class="card-media">${mh}</div><div class="card-body"><div class="card-title">${loc.name}</div><div class="card-subtitle">${loc.type}${loc.address?' · '+loc.address:''}</div>${loc.description?`<div style="font-size:12px;color:var(--text2);margin-top:4px">${loc.description.slice(0,80)}${loc.description.length>80?'...':''}</div>`:''}${tags?`<div class="card-tags">${tags}</div>`:''}</div>`;
@@ -1217,7 +1261,7 @@ async function openEditScript(id) {
   document.getElementById('script-content').value=s.content||'';
   document.getElementById('script-notes').value=s.notes||'';
   existingMedia.script=[...(s.media||[])];
-  for (const ref of existingMedia.script) { const m=await getMediaUrl(ref); if (m) renderThumb(ref.id,m.url,m.type,'script',true,ref.ext); }
+  for (const ref of existingMedia.script) { if (ref.type?.startsWith('video/')&&ref.thumb){renderThumb(ref.id,null,ref.type,'script',true,ref.ext,ref.thumb);continue;} const m=await getMediaUrl(ref); if (m) renderThumb(ref.id,m.url,m.type,'script',true,ref.ext,ref.thumb); }
   closeDetail(); openModal('modal-script');
 }
 
@@ -1293,7 +1337,7 @@ async function openEditProject(id) {
   document.getElementById('project-desc').value=p.description||'';
   document.getElementById('project-notes').value=p.notes||'';
   existingMedia.project=[...(p.media||[])];
-  for (const ref of existingMedia.project) { const m=await getMediaUrl(ref); if (m) renderThumb(ref.id,m.url,m.type,'project',true,ref.ext); }
+  for (const ref of existingMedia.project) { if (ref.type?.startsWith('video/')&&ref.thumb){renderThumb(ref.id,null,ref.type,'project',true,ref.ext,ref.thumb);continue;} const m=await getMediaUrl(ref); if (m) renderThumb(ref.id,m.url,m.type,'project',true,ref.ext,ref.thumb); }
   closeDetail(); openModal('modal-project');
 }
 
@@ -1365,9 +1409,9 @@ async function buildMediaGrid(refs) {
     _mediaRefs[ref.id] = ref;
     const isVideo = ref.type?.startsWith('video/');
     if (isVideo) {
-      // Видео всегда показываем плейсхолдер — URL получаем свежим при клике
-      html+=`<div class="detail-media-item" onclick="lightboxRef('${ref.id}','video')" style="display:flex;align-items:center;justify-content:center;background:var(--bg3);cursor:pointer;border:1px solid var(--border)">
-        <div style="text-align:center;padding:12px"><div style="font-size:36px">▶️</div><div style="font-size:10px;color:var(--text2);margin-top:6px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ref.name||'Видео'}</div></div></div>`;
+      const thumbBg = ref.thumb ? `background:url('${ref.thumb}') center/cover no-repeat;` : 'background:var(--bg3);';
+      html+=`<div class="detail-media-item" onclick="lightboxRef('${ref.id}','video')" style="${thumbBg}cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;">
+        <div style="background:rgba(0,0,0,0.45);border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:24px">▶️</div></div>`;
     } else {
       const m = await getMediaUrl(ref);
       if (m && m.type.startsWith('image/')) {
@@ -1451,6 +1495,11 @@ async function migrateMedia() {
           if (ref.type?.startsWith('image/')) {
             const data = await compressImage(inIDB.blob);
             if (data) { ref.data = data; changed = true; }
+          }
+          // Видео: генерируем превью-кадр если ещё нет
+          if (ref.type?.startsWith('video/') && !ref.thumb) {
+            const thumb = await generateVideoThumbnail(inIDB.blob);
+            if (thumb) { ref.thumb = thumb; changed = true; }
           }
           // Видео + все файлы: загружаем на YD если есть токен
           if (YD.token) {
