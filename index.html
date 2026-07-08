@@ -689,16 +689,24 @@ const YD = {
     } catch(e) { console.warn('YD mkdir:', e.message); }
   },
 
-  async uploadFile(id, ext, file) {
+  async uploadFile(id, ext, file, onProgress) {
     try {
       await this.mkdir(this.ROOT); await this.mkdir(this.ROOT + '/media');
       const path = `${this.ROOT}/media/${id}.${ext}`;
       const r1 = await fetch(`${this.BASE}/resources/upload?path=${encodeURIComponent(path)}&overwrite=true`, { headers: this.h() });
       if (!r1.ok) { console.warn('YD upload link failed:', r1.status); return false; }
       const { href } = await r1.json();
-      const r2 = await fetch(href, { method:'PUT', body:file });
-      if (!r2.ok) { console.warn('YD upload PUT failed:', r2.status); return false; }
-      return true;
+      // Используем XHR для отслеживания прогресса загрузки
+      return await new Promise((resolve) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', href);
+        if (onProgress) {
+          xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress(e.loaded, e.total); };
+        }
+        xhr.onload = () => resolve(xhr.status >= 200 && xhr.status < 300);
+        xhr.onerror = () => { console.warn('YD upload XHR error'); resolve(false); };
+        xhr.send(file);
+      });
     } catch(e) { console.warn('YD uploadFile:', e.message); return false; }
   },
 
@@ -1043,26 +1051,33 @@ function rmExisting(id, ctx) { existingMedia[ctx]=existingMedia[ctx].filter(x=>x
 async function commitMedia(ctx) {
   const newRefs = [...pending[ctx]];
   const allRefs = [...existingMedia[ctx], ...newRefs];
-  // Видео загружаем на YD в фоне (не блокируем сохранение)
+  // Видео: блокирующая загрузка на YD с прогресс-баром
   if (YD.token && newRefs.length) {
     const videoRefs = newRefs.filter(r => r.type?.startsWith('video/'));
     if (videoRefs.length) {
-      toast(`Видео загружается на Яндекс Диск... не закрывайте страницу`, 'info');
-      (async () => {
-        let ok = 0;
-        for (const ref of videoRefs) {
-          const rec = await idbGet(ref.id);
-          if (!rec) continue;
-          const uploaded = await YD.uploadFile(ref.id, ref.ext, rec.blob);
-          if (uploaded) { ref.ydReady = true; ok++; }
-        }
-        if (ok > 0) {
-          await FB.upload().catch(()=>{});
-          toast(`✅ Видео (${ok} шт.) загружено — теперь доступно на всех устройствах`, 'success');
-        } else {
-          toast('⚠️ Не удалось загрузить видео на Яндекс Диск. Проверьте токен в Настройках.', 'error');
-        }
-      })();
+      // Блокирующая загрузка с прогресс-баром
+      let wakeLock = null;
+      try { wakeLock = await navigator.wakeLock?.request('screen'); } catch(e) {}
+      let ok = 0;
+      for (let i = 0; i < videoRefs.length; i++) {
+        const ref = videoRefs[i];
+        const rec = await idbGet(ref.id);
+        if (!rec) continue;
+        const mb = Math.round((rec.blob.size || 0) / 1024 / 1024);
+        showUploadProgress(`Загрузка видео ${i+1} из ${videoRefs.length} (${mb} МБ)...`, 0, 100);
+        const uploaded = await YD.uploadFile(ref.id, ref.ext, rec.blob, (loaded, total) => {
+          showUploadProgress(`Загрузка видео ${i+1} из ${videoRefs.length}...`, Math.round(loaded/1024/1024), Math.round(total/1024/1024));
+        });
+        if (uploaded) { ref.ydReady = true; ok++; }
+      }
+      hideUploadProgress();
+      try { wakeLock?.release(); } catch(e) {}
+      if (ok > 0) {
+        await FB.upload().catch(()=>{});
+        toast(`✅ Видео загружено на Яндекс Диск — доступно на всех устройствах`, 'success');
+      } else {
+        toast('⚠️ Не удалось загрузить видео. Проверьте токен Яндекс Диска в Настройках.', 'error');
+      }
     }
   }
   return allRefs;
@@ -1606,8 +1621,15 @@ async function migrateMedia() {
             const thumb = await generateVideoThumbnail(inIDB.blob);
             if (thumb) { ref.thumb = thumb; changed = true; }
           }
-          // Видео + все файлы: загружаем на YD если есть токен
-          if (YD.token) {
+          // Видео: загружаем на YD с прогрессом
+          if (YD.token && ref.type?.startsWith('video/')) {
+            showUploadProgress(`Загрузка видео на ЯД...`, 0, 100);
+            const ok = await YD.uploadFile(ref.id, ref.ext, inIDB.blob, (l,t)=>{
+              showUploadProgress(`Загрузка видео...`, Math.round(l/1024/1024), Math.round(t/1024/1024));
+            });
+            hideUploadProgress();
+            if (ok) { ref.ydReady = true; changed = true; }
+          } else if (YD.token && !ref.type?.startsWith('video/')) {
             await YD.uploadFile(ref.id, ref.ext, inIDB.blob).catch(()=>{});
             changed = true;
           }
