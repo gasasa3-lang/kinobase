@@ -916,24 +916,56 @@ function loadCurrentPage() {
 // Генерируем превью-кадр из видео (для отображения на всех устройствах)
 function generateVideoThumbnail(file) {
   return new Promise((resolve) => {
-    if (!file.type.startsWith('video/')) { resolve(null); return; }
+    if (!file || !file.type || !file.type.startsWith('video/')) { resolve(null); return; }
     const url = URL.createObjectURL(file);
     const v = document.createElement('video');
     v.muted = true; v.playsInline = true;
-    v.onloadeddata = () => { v.currentTime = Math.min(1, (v.duration || 5) * 0.1); };
-    v.onseeked = () => {
+    let captured = false;
+
+    function doCapture() {
+      if (captured) return;
+      captured = true;
+      clearTimeout(timer);
       try {
-        const w = Math.min(v.videoWidth || 400, 400);
-        const h = v.videoWidth ? Math.round(w * v.videoHeight / v.videoWidth) : 225;
-        const canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(v, 0, 0, w, h);
-        URL.revokeObjectURL(url);
-        resolve(canvas.toDataURL('image/jpeg', 0.7));
-      } catch(e) { URL.revokeObjectURL(url); resolve(null); }
+        const w = Math.min(v.videoWidth || 320, 320);
+        const h = v.videoWidth ? Math.round(w * v.videoHeight / v.videoWidth) : 180;
+        if (!w || !h) { done(null); return; }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(v, 0, 0, w, h);
+        const data = c.toDataURL('image/jpeg', 0.7);
+        done(data.length > 3000 ? data : null); // <3KB = пустой/чёрный кадр
+      } catch(e) { done(null); }
+    }
+
+    function done(result) {
+      try { v.pause(); v.removeAttribute('src'); v.load(); } catch(e) {}
+      URL.revokeObjectURL(url);
+      resolve(result);
+    }
+
+    // Таймаут 12 сек
+    const timer = setTimeout(() => { captured = true; done(null); }, 12000);
+
+    // Основной путь: ловим кадр через ontimeupdate (работает на iOS)
+    v.ontimeupdate = () => {
+      if (v.currentTime >= 0.1) doCapture();
     };
-    v.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
-    v.src = url; v.load();
+
+    // Запасной: onseeked
+    v.onseeked = () => doCapture();
+
+    v.onloadedmetadata = () => {
+      // Пробуем play() — это разблокирует декодирование на iOS Safari
+      v.play().catch(() => {
+        // Если play() отклонён — пробуем seek напрямую
+        v.currentTime = Math.min(1, (v.duration || 10) * 0.1) || 0.5;
+      });
+    };
+
+    v.onerror = () => { captured = true; done(null); };
+    v.src = url;
+    v.load();
   });
 }
 
@@ -1120,7 +1152,20 @@ async function renderPeopleGrid(list) {
         if (firstRef.thumb) {
           mh = `<img src="${firstRef.thumb}" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25)"><div style="font-size:32px">▶️</div></div>`;
         } else {
-          mh = `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:40px">🎬</div>`;
+          mh = `<div id="cthumb-${firstRef.id}" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:40px">🎬</div>`;
+          // Генерируем превью в фоне
+          (async () => {
+            const rec = await idbGet(firstRef.id);
+            if (!rec) return;
+            const thumb = await generateVideoThumbnail(rec.blob);
+            if (!thumb) return;
+            firstRef.thumb = thumb;
+            await persistDB();
+            const el = document.getElementById('cthumb-'+firstRef.id);
+            if (el && el.parentElement) {
+              el.parentElement.innerHTML = `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25)"><div style="font-size:32px">▶️</div></div>`;
+            }
+          })();
         }
       } else {
         const m = await getMediaUrl(firstRef);
@@ -1208,7 +1253,19 @@ async function renderLocGrid(list) {
         if (firstRef.thumb) {
           mh = `<img src="${firstRef.thumb}" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25)"><div style="font-size:32px">▶️</div></div>`;
         } else {
-          mh = `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:40px">🎬</div>`;
+          mh = `<div id="cthumb-${firstRef.id}" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:40px">🎬</div>`;
+          (async () => {
+            const rec = await idbGet(firstRef.id);
+            if (!rec) return;
+            const thumb = await generateVideoThumbnail(rec.blob);
+            if (!thumb) return;
+            firstRef.thumb = thumb;
+            await persistDB();
+            const el = document.getElementById('cthumb-'+firstRef.id);
+            if (el && el.parentElement) {
+              el.parentElement.innerHTML = `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25)"><div style="font-size:32px">▶️</div></div>`;
+            }
+          })();
         }
       } else {
         const m = await getMediaUrl(firstRef);
@@ -1405,19 +1462,44 @@ const _mediaRefs = {};
 async function buildMediaGrid(refs) {
   if (!refs?.length) return '';
   let html='<div class="detail-label" style="margin-top:20px">Медиа</div><div class="detail-media-grid">';
+  const needThumb = []; // рефы видео без превью — сгенерируем после рендера
   for (const ref of refs) {
     _mediaRefs[ref.id] = ref;
     const isVideo = ref.type?.startsWith('video/');
     if (isVideo) {
-      const thumbBg = ref.thumb ? `background:url('${ref.thumb}') center/cover no-repeat;` : 'background:var(--bg3);';
-      html+=`<div class="detail-media-item" onclick="lightboxRef('${ref.id}','video')" style="${thumbBg}cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;">
-        <div style="background:rgba(0,0,0,0.45);border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:24px">▶️</div></div>`;
+      if (ref.thumb) {
+        html+=`<div class="detail-media-item" id="vg-${ref.id}" onclick="lightboxRef('${ref.id}','video')" style="background:url('${ref.thumb}') center/cover no-repeat;cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;">
+          <div style="background:rgba(0,0,0,0.45);border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:24px">▶️</div></div>`;
+      } else {
+        html+=`<div class="detail-media-item" id="vg-${ref.id}" onclick="lightboxRef('${ref.id}','video')" style="background:var(--bg3);cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;">
+          <div style="background:rgba(0,0,0,0.45);border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:24px">▶️</div></div>`;
+        needThumb.push(ref);
+      }
     } else {
       const m = await getMediaUrl(ref);
       if (m && m.type.startsWith('image/')) {
         html+=`<div class="detail-media-item" onclick="lightboxRef('${ref.id}','image')"><img src="${m.url}" loading="lazy"></div>`;
       }
     }
+  }
+  // Генерируем превью для старых видео в фоне после рендера
+  if (needThumb.length) {
+    setTimeout(async () => {
+      let dbChanged = false;
+      for (const ref of needThumb) {
+        const rec = await idbGet(ref.id);
+        if (!rec) continue;
+        const thumb = await generateVideoThumbnail(rec.blob);
+        if (!thumb) continue;
+        ref.thumb = thumb;
+        _mediaRefs[ref.id] = ref;
+        dbChanged = true;
+        // Обновляем DOM
+        const el = document.getElementById('vg-'+ref.id);
+        if (el) el.style.background = `url('${thumb}') center/cover no-repeat`;
+      }
+      if (dbChanged) await persistDB();
+    }, 100);
   }
   return html+'</div>';
 }
