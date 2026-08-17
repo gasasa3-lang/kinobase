@@ -330,6 +330,29 @@
       <div class="page-header"><h2>Настройки</h2></div>
       <div class="page-body">
         <div class="settings-section">
+          <h3>🎬 Облако для видео (Cloudinary)</h3>
+          <div class="info-box">
+            Решает сразу две проблемы: видео становится видно на всех устройствах <strong>и</strong> проигрывается в любом браузере (не только в Safari) — Cloudinary сам перекодирует любой формат, включая HEVC/MOV с iPhone, в стандартный MP4.<br><br>
+            <strong>Как подключить (один раз, бесплатно):</strong>
+            <ol>
+              <li>Зарегистрируйтесь на <a href="https://cloudinary.com/users/register/free" target="_blank" style="color:var(--accent)">cloudinary.com</a> (бесплатный план — 25 ГБ)</li>
+              <li>В Dashboard скопируйте значение <strong>Cloud name</strong></li>
+              <li>Зайдите в Settings → Upload → Upload presets → <strong>Add upload preset</strong></li>
+              <li>Установите <strong>Signing Mode: Unsigned</strong>, сохраните и скопируйте имя пресета</li>
+              <li>Вставьте оба значения ниже</li>
+            </ol>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Cloud name</label><input type="text" id="cld-cloud-input" placeholder="например, dabc12345"></div>
+            <div class="form-group"><label>Upload preset (unsigned)</label><input type="text" id="cld-preset-input" placeholder="например, kinobase_unsigned"></div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="saveCLDConfig()">Сохранить и подключить</button>
+            <button class="btn btn-ghost" onclick="checkCLDConnection()">Проверить соединение</button>
+            <div id="cld-status" style="font-size:13px;color:var(--text2)"></div>
+          </div>
+        </div>
+        <div class="settings-section">
           <h3>☁️ Яндекс Диск (необязательно)</h3>
           <div class="info-box">
             Без токена все данные хранятся <strong>локально в браузере</strong> — они не исчезают при перезагрузке.<br>
@@ -359,7 +382,7 @@
         <div class="settings-section">
           <h3>☁️ Загрузить медиа в облако</h3>
           <div class="info-box">
-            Запусти на устройстве где <strong>добавлялись файлы</strong>. Загрузит все фото в Firebase и видео на Яндекс Диск — после этого они будут видны на всех устройствах.
+            Запусти на устройстве где <strong>добавлялись файлы</strong>. Загрузит все фото в Firebase и видео — в Cloudinary (если настроен) или на Яндекс Диск — после этого они будут видны на всех устройствах и во всех браузерах.
           </div>
           <button class="btn btn-primary" id="migrate-btn" onclick="migrateMedia()">☁️ Загрузить медиа в облако</button>
         </div>
@@ -632,7 +655,7 @@ const FB = {
     const payload = {
       people: DB.people, locations: DB.locations,
       scripts: DB.scripts, projects: DB.projects,
-      config: { ydToken: YD.token || null }
+      config: { ydToken: YD.token || null, cldCloud: CLD.cloud || null, cldPreset: CLD.preset || null }
     };
     const r = await fetch(`${this.URL}/db.json`, {
       method: 'PUT',
@@ -658,8 +681,10 @@ async function fbSync() {
       DB.locations = mergeRecords(DB.locations, remote.locations);
       DB.scripts   = mergeRecords(DB.scripts,   remote.scripts);
       DB.projects  = mergeRecords(DB.projects,  remote.projects);
-      if (remote.config && remote.config.ydToken && !YD.token) {
-        YD.token = remote.config.ydToken;
+      if (remote.config) {
+        if (remote.config.ydToken && !YD.token) YD.token = remote.config.ydToken;
+        if (remote.config.cldCloud && !CLD.cloud) CLD.cloud = remote.config.cldCloud;
+        if (remote.config.cldPreset && !CLD.preset) CLD.preset = remote.config.cldPreset;
       }
       saveLocal();
     }
@@ -743,6 +768,81 @@ async function checkYDConnection() {
   }
 }
 
+// Cloudinary — облако для видео: сам перекодирует любой формат (в т.ч. iPhone HEVC/MOV)
+// в стандартный H.264/MP4, который проигрывается в любом браузере на любом устройстве.
+const CLD = {
+  get cloud() { return localStorage.getItem('kb_cld_cloud') || ''; },
+  set cloud(v) { if (v) localStorage.setItem('kb_cld_cloud', v); else localStorage.removeItem('kb_cld_cloud'); },
+  get preset() { return localStorage.getItem('kb_cld_preset') || ''; },
+  set preset(v) { if (v) localStorage.setItem('kb_cld_preset', v); else localStorage.removeItem('kb_cld_preset'); },
+  get configured() { return !!(this.cloud && this.preset); },
+
+  // f_auto,q_auto + расширение .mp4 заставляет Cloudinary отдать видео в универсальном
+  // формате H.264, даже если исходник был в HEVC/MOV.
+  deliveryUrl(publicId) {
+    return `https://res.cloudinary.com/${this.cloud}/video/upload/f_auto,q_auto/${publicId}.mp4`;
+  },
+
+  async uploadFile(blob, onProgress) {
+    if (!this.configured) return null;
+    try {
+      const fd = new FormData();
+      fd.append('file', blob);
+      fd.append('upload_preset', this.preset);
+      return await new Promise((resolve) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `https://api.cloudinary.com/v1_1/${this.cloud}/video/upload`);
+        if (onProgress) xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress(e.loaded, e.total); };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              resolve(data.public_id ? this.deliveryUrl(data.public_id) : null);
+            } catch(e) { console.warn('CLD parse:', e.message); resolve(null); }
+          } else {
+            console.warn('CLD upload failed:', xhr.status, xhr.responseText);
+            resolve(null);
+          }
+        };
+        xhr.onerror = () => { console.warn('CLD upload XHR error'); resolve(null); };
+        xhr.send(fd);
+      });
+    } catch(e) { console.warn('CLD uploadFile:', e.message); return null; }
+  }
+};
+
+async function checkCLDConnection() {
+  const el = document.getElementById('cld-status');
+  if (!CLD.configured) { el.textContent = '❌ Заполните облако и пресет'; el.style.color = 'var(--danger)'; return; }
+  el.textContent = '⏳ Проверяем...'; el.style.color = 'var(--text2)';
+  // Пробное видео 1x1px (тестируем именно тот же путь, что использует загрузка)
+  try {
+    const tiny = new Blob([new Uint8Array([0,0,0,0])], { type: 'video/mp4' });
+    const fd = new FormData();
+    fd.append('file', tiny);
+    fd.append('upload_preset', CLD.preset);
+    const r = await fetch(`https://api.cloudinary.com/v1_1/${CLD.cloud}/video/upload`, { method:'POST', body: fd });
+    const data = await r.json().catch(()=>({}));
+    if (r.ok || (data.error && !/preset|cloud/i.test(data.error.message||''))) {
+      el.textContent = '✅ Настройки верны (облако и пресет найдены)'; el.style.color = 'var(--success)';
+    } else {
+      el.textContent = '❌ Ошибка: ' + (data.error?.message || r.status); el.style.color = 'var(--danger)';
+    }
+  } catch(e) {
+    el.textContent = '❌ Ошибка: ' + e.message; el.style.color = 'var(--danger)';
+  }
+}
+
+function saveCLDConfig() {
+  const cloud = document.getElementById('cld-cloud-input').value.trim();
+  const preset = document.getElementById('cld-preset-input').value.trim();
+  if (!cloud || !preset) { toast('Заполните оба поля', 'error'); return; }
+  CLD.cloud = cloud; CLD.preset = preset;
+  toast('Сохранено! Проверяем соединение...', 'success');
+  checkCLDConnection();
+  fbSync(); // синхронизируем настройки на все устройства
+}
+
 // =====================================================================
 // APP STATE
 // =====================================================================
@@ -797,9 +897,11 @@ async function startApp(user) {
       DB.locations = mergeRecords(DB.locations, remote.locations);
       DB.scripts   = mergeRecords(DB.scripts,   remote.scripts);
       DB.projects  = mergeRecords(DB.projects,  remote.projects);
-      // Подтягиваем токен ЯД с Firebase (чтобы не вводить на каждом устройстве)
-      if (remote.config && remote.config.ydToken && !YD.token) {
-        YD.token = remote.config.ydToken;
+      // Подтягиваем токен ЯД и настройки Cloudinary с Firebase (чтобы не вводить на каждом устройстве)
+      if (remote.config) {
+        if (remote.config.ydToken && !YD.token) YD.token = remote.config.ydToken;
+        if (remote.config.cldCloud && !CLD.cloud) CLD.cloud = remote.config.cldCloud;
+        if (remote.config.cldPreset && !CLD.preset) CLD.preset = remote.config.cldPreset;
       }
       saveLocal();
     }
@@ -1051,34 +1153,41 @@ function rmExisting(id, ctx) { existingMedia[ctx]=existingMedia[ctx].filter(x=>x
 async function commitMedia(ctx) {
   const newRefs = [...pending[ctx]];
   const allRefs = [...existingMedia[ctx], ...newRefs];
-  // Видео: блокирующая загрузка на YD с прогресс-баром
-  if (YD.token && newRefs.length) {
-    const videoRefs = newRefs.filter(r => r.type?.startsWith('video/'));
-    if (videoRefs.length) {
-      // Блокирующая загрузка с прогресс-баром
-      let wakeLock = null;
-      try { wakeLock = await navigator.wakeLock?.request('screen'); } catch(e) {}
-      let ok = 0;
-      for (let i = 0; i < videoRefs.length; i++) {
-        const ref = videoRefs[i];
-        const rec = await idbGet(ref.id);
-        if (!rec) continue;
-        const mb = Math.round((rec.blob.size || 0) / 1024 / 1024);
-        showUploadProgress(`Загрузка видео ${i+1} из ${videoRefs.length} (${mb} МБ)...`, 0, 100);
-        const uploaded = await YD.uploadFile(ref.id, ref.ext, rec.blob, (loaded, total) => {
-          showUploadProgress(`Загрузка видео ${i+1} из ${videoRefs.length}...`, Math.round(loaded/1024/1024), Math.round(total/1024/1024));
-        });
+  const videoRefs = newRefs.filter(r => r.type?.startsWith('video/'));
+  if (videoRefs.length && (CLD.configured || YD.token)) {
+    // Блокирующая загрузка с прогресс-баром
+    let wakeLock = null;
+    try { wakeLock = await navigator.wakeLock?.request('screen'); } catch(e) {}
+    let ok = 0;
+    for (let i = 0; i < videoRefs.length; i++) {
+      const ref = videoRefs[i];
+      const rec = await idbGet(ref.id);
+      if (!rec) continue;
+      const mb = Math.round((rec.blob.size || 0) / 1024 / 1024);
+      showUploadProgress(`Загрузка видео ${i+1} из ${videoRefs.length} (${mb} МБ)...`, 0, 100);
+      const onProg = (loaded, total) => showUploadProgress(`Загрузка видео ${i+1} из ${videoRefs.length}...`, Math.round(loaded/1024/1024), Math.round(total/1024/1024));
+      if (CLD.configured) {
+        // Приоритет: Cloudinary сам перекодирует видео в универсальный H.264/MP4
+        const url = await CLD.uploadFile(rec.blob, onProg);
+        if (url) { ref.cldUrl = url; ok++; }
+      } else if (YD.token) {
+        const uploaded = await YD.uploadFile(ref.id, ref.ext, rec.blob, onProg);
         if (uploaded) { ref.ydReady = true; ok++; }
       }
-      hideUploadProgress();
-      try { wakeLock?.release(); } catch(e) {}
-      if (ok > 0) {
-        await FB.upload().catch(()=>{});
-        toast(`✅ Видео загружено на Яндекс Диск — доступно на всех устройствах`, 'success');
-      } else {
-        toast('⚠️ Не удалось загрузить видео. Проверьте токен Яндекс Диска в Настройках.', 'error');
-      }
     }
+    hideUploadProgress();
+    try { wakeLock?.release(); } catch(e) {}
+    if (ok > 0) {
+      await FB.upload().catch(()=>{});
+      const msg = CLD.configured
+        ? '✅ Видео загружено в облако — играет на всех устройствах и во всех браузерах'
+        : '✅ Видео загружено на Яндекс Диск — доступно на всех устройствах';
+      toast(msg, 'success');
+    } else {
+      toast('⚠️ Не удалось загрузить видео в облако. Проверьте настройки в Настройках.', 'error');
+    }
+  } else if (videoRefs.length) {
+    toast('⚠️ Видео сохранено только на этом устройстве. Настройте облако в Настройках, чтобы оно было видно везде.', 'info');
   }
   return allRefs;
 }
@@ -1089,12 +1198,14 @@ function clearCtx(ctx) {
 }
 
 async function getMediaUrl(ref) {
-  // 1. IndexedDB (своё устройство — оригинальное качество)
+  // 1. Cloudinary — видео уже перекодировано в H.264/MP4, гарантированно играет в любом браузере
+  if (ref.cldUrl) return { url: ref.cldUrl, type: 'video/mp4', name: ref.name };
+  // 2. IndexedDB (своё устройство — оригинальное качество, мгновенно без сети)
   const rec = await idbGet(ref.id);
   if (rec && rec.blob) return { url: URL.createObjectURL(rec.blob), type: rec.type, name: rec.name };
-  // 2. Base64 данные из Firebase (другое устройство)
+  // 3. Base64 данные из Firebase (другое устройство, фото)
   if (ref.data) return { url: ref.data, type: 'image/jpeg', name: ref.name };
-  // 3. Яндекс Диск (видео и старые файлы без base64)
+  // 4. Яндекс Диск (легаси видео без Cloudinary)
   if (YD.token) {
     const url = await YD.getFileUrl(ref.id, ref.ext);
     if (url) return { url, type: ref.type, name: ref.name };
@@ -1572,7 +1683,7 @@ function lightbox(url,type) {
     // Если браузер не может воспроизвести (HEVC/MOV) — показываем подсказку
     const errMsg=document.createElement('div');
     errMsg.style.cssText='display:none;color:#fff;font-size:13px;text-align:center;padding:8px;background:rgba(255,100,100,0.3);border-radius:6px;max-width:360px';
-    errMsg.innerHTML='⚠️ Chrome не поддерживает HEVC/MOV.<br>Откройте сайт в <strong>Safari</strong> — там видео играет. Или нажмите «Скачать».';
+    errMsg.innerHTML='⚠️ Браузер не поддерживает формат этого видео.<br>Нажмите «Скачать» либо откройте в Safari. Чтобы это не повторялось — настройте облако для видео в Настройках.';
     v.onerror=()=>{ errMsg.style.display='block'; };
 
     // Кнопка скачать
@@ -1621,8 +1732,15 @@ async function migrateMedia() {
             const thumb = await generateVideoThumbnail(inIDB.blob);
             if (thumb) { ref.thumb = thumb; changed = true; }
           }
-          // Видео: загружаем на YD с прогрессом
-          if (YD.token && ref.type?.startsWith('video/')) {
+          // Видео: загружаем в облако (приоритет — Cloudinary, он же перекодирует HEVC/MOV в MP4)
+          if (ref.type?.startsWith('video/') && !ref.cldUrl && CLD.configured) {
+            showUploadProgress(`Загрузка видео в облако...`, 0, 100);
+            const url = await CLD.uploadFile(inIDB.blob, (l,t)=>{
+              showUploadProgress(`Загрузка видео...`, Math.round(l/1024/1024), Math.round(t/1024/1024));
+            });
+            hideUploadProgress();
+            if (url) { ref.cldUrl = url; changed = true; }
+          } else if (ref.type?.startsWith('video/') && !ref.cldUrl && YD.token) {
             showUploadProgress(`Загрузка видео на ЯД...`, 0, 100);
             const ok = await YD.uploadFile(ref.id, ref.ext, inIDB.blob, (l,t)=>{
               showUploadProgress(`Загрузка видео...`, Math.round(l/1024/1024), Math.round(t/1024/1024));
