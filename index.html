@@ -1706,11 +1706,16 @@ function lightbox(url,type) {
     v.style.cssText='max-width:94vw;max-height:80vh;border-radius:6px;display:block;background:#000;min-width:320px;min-height:180px';
     v.onclick=e=>e.stopPropagation();
 
-    // Если браузер не может воспроизвести (HEVC/MOV) — показываем подсказку
+    // Если браузер не может воспроизвести — показываем подсказку + техническую причину
     const errMsg=document.createElement('div');
     errMsg.style.cssText='display:none;color:#fff;font-size:13px;text-align:center;padding:8px;background:rgba(255,100,100,0.3);border-radius:6px;max-width:360px';
-    errMsg.innerHTML='⚠️ Браузер не поддерживает формат этого видео.<br>Нажмите «Скачать» либо откройте в Safari. Чтобы это не повторялось — настройте облако для видео в Настройках.';
-    v.onerror=()=>{ errMsg.style.display='block'; };
+    const errCodes={1:'ABORTED',2:'NETWORK (ссылка недоступна/CORS)',3:'DECODE (файл повреждён/не тот формат)',4:'SRC_NOT_SUPPORTED (браузер не поддерживает формат/ссылка не найдена)'};
+    v.onerror=()=>{
+      const code=v.error?v.error.code:0;
+      errMsg.innerHTML='⚠️ Браузер не поддерживает формат этого видео.<br>Нажмите «Скачать» либо откройте в Safari. Чтобы это не повторялось — настройте облако для видео в Настройках.'
+        + `<br><br><span style="opacity:0.7;font-size:11px;word-break:break-all">Код: ${errCodes[code]||code}<br>Ссылка: ${url}</span>`;
+      errMsg.style.display='block';
+    };
 
     // Кнопка скачать
     const dlBtn=document.createElement('a');
