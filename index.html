@@ -1131,7 +1131,15 @@ function compressImage(file, maxWidth = 800, quality = 0.75) {
 }
 
 async function handleFiles(files, ctx) {
+  const MAX_VIDEO_MB = 100; // лимит бесплатного плана Cloudinary на один файл видео
   for (const f of files) {
+    if (f.type.startsWith('video/')) {
+      const mb = f.size / 1024 / 1024;
+      if (mb > MAX_VIDEO_MB) {
+        toast(`⚠️ Видео «${f.name}» весит ${Math.round(mb)} МБ — это больше лимита облака (${MAX_VIDEO_MB} МБ на файл). Сожмите видео (например, в HandBrake, пресет "Fast 720p30") и попробуйте снова.`, 'error');
+        continue; // такое видео не добавляем — иначе оно попадёт только в память устройства и не уедет в облако
+      }
+    }
     const id = uid();
     const ext = getExt(f);
     await idbPut(id, f, f.name, f.type);
