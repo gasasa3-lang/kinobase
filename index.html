@@ -975,12 +975,26 @@ function setSyncStatus(state, text) {
   txt.textContent = text;
 }
 
+// Возвращает только "живые" (не удалённые) записи.
+// Удалённые записи не стираются из массива физически — им ставится флаг deleted:true
+// (см. deleteRecord), чтобы удаление могло корректно долететь до других устройств
+// через Firebase-синхронизацию (иначе устройство, которое ещё не в курсе удаления,
+// при следующей синхронизации "воскрешает" запись обратно).
+function live(arr) { return (arr||[]).filter(x => !x.deleted); }
+
+// Мягкое удаление записи: помечаем deleted:true вместо физического удаления из массива.
+function deleteRecord(list, id) {
+  const idx = list.findIndex(x => x.id === id);
+  if (idx >= 0) { list[idx].deleted = true; list[idx].updatedAt = Date.now(); }
+}
+
 function updateBadges() {
   ['people','locations','scripts','projects'].forEach(s => {
+    const count = live(DB[s]).length;
     const b = document.getElementById('badge-'+s);
-    if (b) b.textContent = DB[s].length;
+    if (b) b.textContent = count;
     const stat = document.getElementById('stat-'+s);
-    if (stat) stat.textContent = DB[s].length;
+    if (stat) stat.textContent = count;
   });
 }
 
@@ -1281,7 +1295,7 @@ function loadPeople() { filterPeople(); }
 function filterPeople() {
   const q = document.getElementById('search-people').value.toLowerCase();
   const pr = document.getElementById('filter-profession').value;
-  renderPeopleGrid(DB.people.filter(p=>p.name.toLowerCase().includes(q)&&(!pr||p.profession===pr)));
+  renderPeopleGrid(live(DB.people).filter(p=>p.name.toLowerCase().includes(q)&&(!pr||p.profession===pr)));
 }
 
 async function renderPeopleGrid(list) {
@@ -1334,7 +1348,7 @@ async function openPersonDetail(id) {
   document.getElementById('detail-delete-btn').onclick=async()=>{
     if (await showConfirm('Удалить человека',`Удалить "${p.name}"?`)) {
       for (const ref of p.media||[]) { await idbDel(ref.id); await YD.deleteFile(ref.id,ref.ext); }
-      DB.people=DB.people.filter(x=>x.id!==id); await persistDB(); closeDetail(); loadPeople(); updateBadges(); toast('Удалено','success');
+      deleteRecord(DB.people, id); await persistDB(); closeDetail(); loadPeople(); updateBadges(); toast('Удалено','success');
     }
   };
   document.getElementById('detail-overlay').classList.add('open');
@@ -1383,7 +1397,7 @@ function loadLocations() { filterLocations(); }
 function filterLocations() {
   const q=document.getElementById('search-locations').value.toLowerCase();
   const t=document.getElementById('filter-loc-type').value;
-  renderLocGrid(DB.locations.filter(l=>l.name.toLowerCase().includes(q)&&(!t||l.type===t)));
+  renderLocGrid(live(DB.locations).filter(l=>l.name.toLowerCase().includes(q)&&(!t||l.type===t)));
 }
 
 async function renderLocGrid(list) {
@@ -1434,7 +1448,7 @@ async function openLocDetail(id) {
   document.getElementById('detail-delete-btn').onclick=async()=>{
     if (await showConfirm('Удалить локацию',`Удалить "${loc.name}"?`)) {
       for (const ref of loc.media||[]) { await idbDel(ref.id); await YD.deleteFile(ref.id,ref.ext); }
-      DB.locations=DB.locations.filter(x=>x.id!==id); await persistDB(); closeDetail(); loadLocations(); updateBadges(); toast('Удалено','success');
+      deleteRecord(DB.locations, id); await persistDB(); closeDetail(); loadLocations(); updateBadges(); toast('Удалено','success');
     }
   };
   document.getElementById('detail-overlay').classList.add('open');
@@ -1482,7 +1496,7 @@ async function saveScript() {
 function loadScripts() { filterScripts(); }
 function filterScripts() {
   const q=document.getElementById('search-scripts').value.toLowerCase();
-  renderScriptsTable(DB.scripts.filter(s=>s.title.toLowerCase().includes(q)||(s.author||'').toLowerCase().includes(q)||(s.project||'').toLowerCase().includes(q)));
+  renderScriptsTable(live(DB.scripts).filter(s=>s.title.toLowerCase().includes(q)||(s.author||'').toLowerCase().includes(q)||(s.project||'').toLowerCase().includes(q)));
 }
 
 function renderScriptsTable(list) {
@@ -1508,7 +1522,7 @@ async function openScriptDetail(id) {
   document.getElementById('detail-delete-btn').onclick=async()=>{
     if (await showConfirm('Удалить сценарий',`Удалить "${s.title}"?`)) {
       for (const ref of s.media||[]) { await idbDel(ref.id); await YD.deleteFile(ref.id,ref.ext); }
-      DB.scripts=DB.scripts.filter(x=>x.id!==id); await persistDB(); closeDetail(); loadScripts(); updateBadges(); toast('Удалено','success');
+      deleteRecord(DB.scripts, id); await persistDB(); closeDetail(); loadScripts(); updateBadges(); toast('Удалено','success');
     }
   };
   document.getElementById('detail-overlay').classList.add('open');
@@ -1559,7 +1573,7 @@ function loadProjects() { filterProjects(); }
 function filterProjects() {
   const q=document.getElementById('search-projects').value.toLowerCase();
   const st=document.getElementById('filter-proj-status').value;
-  renderProjectsTable(DB.projects.filter(p=>(p.name.toLowerCase().includes(q)||(p.client||'').toLowerCase().includes(q))&&(!st||p.status===st)));
+  renderProjectsTable(live(DB.projects).filter(p=>(p.name.toLowerCase().includes(q)||(p.client||'').toLowerCase().includes(q))&&(!st||p.status===st)));
 }
 
 function renderProjectsTable(list) {
@@ -1582,7 +1596,7 @@ async function openProjectDetail(id) {
   document.getElementById('detail-delete-btn').onclick=async()=>{
     if (await showConfirm('Удалить проект',`Удалить "${p.name}"?`)) {
       for (const ref of p.media||[]) { await idbDel(ref.id); await YD.deleteFile(ref.id,ref.ext); }
-      DB.projects=DB.projects.filter(x=>x.id!==id); await persistDB(); closeDetail(); loadProjects(); updateBadges(); toast('Удалено','success');
+      deleteRecord(DB.projects, id); await persistDB(); closeDetail(); loadProjects(); updateBadges(); toast('Удалено','success');
     }
   };
   document.getElementById('detail-overlay').classList.add('open');
@@ -1593,7 +1607,7 @@ async function openProjectDetail(id) {
 // =====================================================================
 function loadDashboard() {
   updateBadges();
-  const all=[...DB.people.map(p=>({...p,_t:'people',_icon:'👤',_sub:p.profession})),...DB.locations.map(l=>({...l,_t:'locations',_icon:'📍',_sub:l.type})),...DB.scripts.map(s=>({...s,name:s.title,_t:'scripts',_icon:'📄',_sub:'Сценарий'})),...DB.projects.map(p=>({...p,_t:'projects',_icon:'🎥',_sub:p.type}))].sort((a,b)=>b.createdAt-a.createdAt).slice(0,8);
+  const all=[...live(DB.people).map(p=>({...p,_t:'people',_icon:'👤',_sub:p.profession})),...live(DB.locations).map(l=>({...l,_t:'locations',_icon:'📍',_sub:l.type})),...live(DB.scripts).map(s=>({...s,name:s.title,_t:'scripts',_icon:'📄',_sub:'Сценарий'})),...live(DB.projects).map(p=>({...p,_t:'projects',_icon:'🎥',_sub:p.type}))].sort((a,b)=>b.createdAt-a.createdAt).slice(0,8);
   const c=document.getElementById('dashboard-recent');
   if (!all.length) { c.innerHTML=`<div class="empty-state"><div class="empty-icon">🎬</div><h3>База пустая</h3><p>Начните добавлять людей, локации, сценарии и проекты</p></div>`; return; }
   c.innerHTML=`<div class="cards-grid">${all.map(item=>`<div class="card" onclick="showPage('${item._t}')"><div class="card-body" style="padding:18px"><div style="font-size:26px;margin-bottom:10px">${item._icon}</div><div class="card-title">${item.name}</div><div class="card-subtitle">${item._sub}</div></div></div>`).join('')}</div>`;
