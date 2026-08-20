@@ -786,14 +786,17 @@ const CLD = {
   // Возвращает { url, error }. url заполнен при успехе, error — читаемая причина при неудаче,
   // чтобы показать её пользователю в тосте, а не гадать вслепую.
   async uploadFile(blob, onProgress) {
-    if (!this.configured) return { url: null, error: 'Cloudinary не настроен (нет Cloud name/preset)' };
+    // На всякий случай подстраховываемся от пробелов/невидимых символов в сохранённых значениях
+    const cloud = (this.cloud || '').trim();
+    const preset = (this.preset || '').trim();
+    if (!cloud || !preset) return { url: null, error: `Cloudinary не настроен на этом устройстве. Cloud="${cloud}" Preset="${preset}"` };
     try {
       const fd = new FormData();
       fd.append('file', blob);
-      fd.append('upload_preset', this.preset);
+      fd.append('upload_preset', preset);
       return await new Promise((resolve) => {
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', `https://api.cloudinary.com/v1_1/${this.cloud}/video/upload`);
+        xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloud}/video/upload`);
         if (onProgress) xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress(e.loaded, e.total); };
         xhr.onload = () => {
           if (xhr.status >= 200 && xhr.status < 300) {
@@ -806,7 +809,7 @@ const CLD = {
             let msg = xhr.responseText;
             try { msg = JSON.parse(xhr.responseText).error?.message || msg; } catch(e) {}
             console.warn('CLD upload failed:', xhr.status, xhr.responseText);
-            resolve({ url: null, error: `HTTP ${xhr.status}: ${String(msg).slice(0,200)}` });
+            resolve({ url: null, error: `HTTP ${xhr.status}: ${String(msg).slice(0,200)} [cloud="${cloud}" preset="${preset}"]` });
           }
         };
         xhr.onerror = () => { console.warn('CLD upload XHR error'); resolve({ url: null, error: 'Сетевая ошибка при загрузке (нет соединения или заблокирован запрос)' }); };
