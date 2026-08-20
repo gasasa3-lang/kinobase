@@ -783,8 +783,10 @@ const CLD = {
     return `https://res.cloudinary.com/${this.cloud}/video/upload/f_auto,q_auto/${publicId}.mp4`;
   },
 
+  // Возвращает { url, error }. url заполнен при успехе, error — читаемая причина при неудаче,
+  // чтобы показать её пользователю в тосте, а не гадать вслепую.
   async uploadFile(blob, onProgress) {
-    if (!this.configured) return null;
+    if (!this.configured) return { url: null, error: 'Cloudinary не настроен (нет Cloud name/preset)' };
     try {
       const fd = new FormData();
       fd.append('file', blob);
@@ -797,17 +799,20 @@ const CLD = {
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               const data = JSON.parse(xhr.responseText);
-              resolve(data.public_id ? this.deliveryUrl(data.public_id) : null);
-            } catch(e) { console.warn('CLD parse:', e.message); resolve(null); }
+              if (data.public_id) resolve({ url: this.deliveryUrl(data.public_id), error: null });
+              else resolve({ url: null, error: 'Cloudinary не вернул public_id: ' + xhr.responseText.slice(0,200) });
+            } catch(e) { resolve({ url: null, error: 'Не удалось разобрать ответ Cloudinary: ' + e.message }); }
           } else {
+            let msg = xhr.responseText;
+            try { msg = JSON.parse(xhr.responseText).error?.message || msg; } catch(e) {}
             console.warn('CLD upload failed:', xhr.status, xhr.responseText);
-            resolve(null);
+            resolve({ url: null, error: `HTTP ${xhr.status}: ${String(msg).slice(0,200)}` });
           }
         };
-        xhr.onerror = () => { console.warn('CLD upload XHR error'); resolve(null); };
+        xhr.onerror = () => { console.warn('CLD upload XHR error'); resolve({ url: null, error: 'Сетевая ошибка при загрузке (нет соединения или заблокирован запрос)' }); };
         xhr.send(fd);
       });
-    } catch(e) { console.warn('CLD uploadFile:', e.message); return null; }
+    } catch(e) { console.warn('CLD uploadFile:', e.message); return { url: null, error: e.message }; }
   }
 };
 
@@ -1014,8 +1019,10 @@ function showConfirm(title, text) {
 function toast(msg, type='info') {
   const c = document.getElementById('toast');
   const d = document.createElement('div');
-  d.className = 'toast-item toast-'+type; d.textContent = msg;
-  c.appendChild(d); setTimeout(() => d.remove(), 3500);
+  d.className = 'toast-item toast-'+type; d.innerHTML = msg;
+  c.appendChild(d);
+  const duration = type === 'error' ? 12000 : 3500; // ошибкам даём больше времени — их нужно успеть прочитать/сфотографировать
+  setTimeout(() => d.remove(), duration);
 }
 
 // =====================================================================
@@ -1193,6 +1200,7 @@ async function commitMedia(ctx) {
     let wakeLock = null;
     try { wakeLock = await navigator.wakeLock?.request('screen'); } catch(e) {}
     let ok = 0;
+    const errors = [];
     for (let i = 0; i < videoRefs.length; i++) {
       const ref = videoRefs[i];
       const rec = await idbGet(ref.id);
@@ -1202,8 +1210,8 @@ async function commitMedia(ctx) {
       const onProg = (loaded, total) => showUploadProgress(`Загрузка видео ${i+1} из ${videoRefs.length}...`, Math.round(loaded/1024/1024), Math.round(total/1024/1024));
       if (CLD.configured) {
         // Приоритет: Cloudinary сам перекодирует видео в универсальный H.264/MP4
-        const url = await CLD.uploadFile(rec.blob, onProg);
-        if (url) { ref.cldUrl = url; ok++; }
+        const { url, error } = await CLD.uploadFile(rec.blob, onProg);
+        if (url) { ref.cldUrl = url; ok++; } else if (error) errors.push(error);
       } else if (YD.token) {
         const uploaded = await YD.uploadFile(ref.id, ref.ext, rec.blob, onProg);
         if (uploaded) { ref.ydReady = true; ok++; }
@@ -1218,7 +1226,8 @@ async function commitMedia(ctx) {
         : '✅ Видео загружено на Яндекс Диск — доступно на всех устройствах';
       toast(msg, 'success');
     } else {
-      toast('⚠️ Не удалось загрузить видео в облако. Проверьте настройки в Настройках.', 'error');
+      const detail = errors.length ? '<br><span style="opacity:0.7;font-size:11px">' + errors[0] + '</span>' : '';
+      toast('⚠️ Не удалось загрузить видео в облако.' + detail, 'error');
     }
   } else if (videoRefs.length) {
     toast('⚠️ Видео сохранено только на этом устройстве. Настройте облако в Настройках, чтобы оно было видно везде.', 'info');
@@ -1774,11 +1783,12 @@ async function migrateMedia() {
           // Видео: загружаем в облако (приоритет — Cloudinary, он же перекодирует HEVC/MOV в MP4)
           if (ref.type?.startsWith('video/') && !ref.cldUrl && CLD.configured) {
             showUploadProgress(`Загрузка видео в облако...`, 0, 100);
-            const url = await CLD.uploadFile(inIDB.blob, (l,t)=>{
+            const { url, error } = await CLD.uploadFile(inIDB.blob, (l,t)=>{
               showUploadProgress(`Загрузка видео...`, Math.round(l/1024/1024), Math.round(t/1024/1024));
             });
             hideUploadProgress();
             if (url) { ref.cldUrl = url; changed = true; }
+            else if (error) toast('⚠️ Не удалось загрузить видео.<br><span style="opacity:0.7;font-size:11px">' + error + '</span>', 'error');
           } else if (ref.type?.startsWith('video/') && !ref.cldUrl && YD.token) {
             showUploadProgress(`Загрузка видео на ЯД...`, 0, 100);
             const ok = await YD.uploadFile(ref.id, ref.ext, inIDB.blob, (l,t)=>{
